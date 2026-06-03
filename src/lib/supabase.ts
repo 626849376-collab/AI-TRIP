@@ -1,9 +1,27 @@
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// 使用惰性初始化，避免在构建时因缺少环境变量而报错
+let supabaseInstance: ReturnType<typeof createClient> | null = null;
+
+function getSupabaseClient() {
+    if (!supabaseInstance) {
+        if (!supabaseUrl || !supabaseAnonKey) {
+            // 在构建时或环境变量缺失时，返回一个模拟客户端
+            // 实际运行时会在浏览器端正常初始化
+            if (typeof window === "undefined") {
+                // 服务端构建时，返回一个不会实际执行查询的模拟对象
+                return createClient("https://placeholder.supabase.co", "placeholder-key");
+            }
+        }
+        supabaseInstance = createClient(supabaseUrl || "", supabaseAnonKey || "");
+    }
+    return supabaseInstance;
+}
+
+export const supabase = getSupabaseClient();
 
 export async function getCurrentUser() {
     const {
