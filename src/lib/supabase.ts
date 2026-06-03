@@ -1,8 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 
-// 支持多种环境变量命名方式（兼容不同配置）
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 // 在浏览器端检查环境变量是否配置
 if (typeof window !== "undefined") {
