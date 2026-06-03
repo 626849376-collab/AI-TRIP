@@ -1,7 +1,19 @@
 import { createClient } from "@supabase/supabase-js";
 
+// 支持多种环境变量命名方式（兼容不同配置）
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+// 在浏览器端检查环境变量是否配置
+if (typeof window !== "undefined") {
+    if (!supabaseUrl || !supabaseAnonKey) {
+        console.error(
+            "❌ Supabase 环境变量未配置！请确保在 Vercel 上设置了以下环境变量：\n" +
+            "  - NEXT_PUBLIC_SUPABASE_URL\n" +
+            "  - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY 或 NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        );
+    }
+}
 
 // 使用惰性初始化，避免在构建时因缺少环境变量而报错
 let supabaseInstance: ReturnType<typeof createClient> | null = null;
@@ -9,14 +21,15 @@ let supabaseInstance: ReturnType<typeof createClient> | null = null;
 function getSupabaseClient() {
     if (!supabaseInstance) {
         if (!supabaseUrl || !supabaseAnonKey) {
-            // 在构建时或环境变量缺失时，返回一个模拟客户端
-            // 实际运行时会在浏览器端正常初始化
             if (typeof window === "undefined") {
                 // 服务端构建时，返回一个不会实际执行查询的模拟对象
                 return createClient("https://placeholder.supabase.co", "placeholder-key");
             }
+            throw new Error(
+                "Supabase 环境变量未配置。请设置 NEXT_PUBLIC_SUPABASE_URL 和 NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY（或 NEXT_PUBLIC_SUPABASE_ANON_KEY）"
+            );
         }
-        supabaseInstance = createClient(supabaseUrl || "", supabaseAnonKey || "");
+        supabaseInstance = createClient(supabaseUrl, supabaseAnonKey);
     }
     return supabaseInstance;
 }
