@@ -340,15 +340,18 @@ export async function getTripByShareCode(shareCode: string) {
 // ============================================
 
 export async function toggleLike(tripId: string, userId: string): Promise<{ isLiked: boolean; likesCount: number }> {
-    // Check if already liked
-    const { data: existing } = await supabase
+    // Check if already liked - use simple query
+    const { data: existing, error: checkError } = await supabase
         .from("trip_likes")
         .select("id")
         .eq("trip_id", tripId)
-        .eq("user_id", userId)
-        .maybeSingle();
+        .eq("user_id", userId);
 
-    if (existing) {
+    if (checkError) throw checkError;
+
+    const isCurrentlyLiked = existing && existing.length > 0;
+
+    if (isCurrentlyLiked) {
         // Unlike
         const { error } = await supabase
             .from("trip_likes")
@@ -366,13 +369,15 @@ export async function toggleLike(tripId: string, userId: string): Promise<{ isLi
         if (error) throw error;
     }
 
-    // Get updated likes count from trip_likes table (RLS allows everyone to SELECT)
-    const { data: likesData } = await supabase
+    // Get updated likes count
+    const { data: likesData, error: countError } = await supabase
         .from("trip_likes")
         .select("id")
         .eq("trip_id", tripId);
 
-    return { isLiked: !existing, likesCount: likesData?.length || 0 };
+    if (countError) throw countError;
+
+    return { isLiked: !isCurrentlyLiked, likesCount: likesData?.length || 0 };
 }
 
 export async function checkIfLiked(tripId: string, userId: string): Promise<boolean> {
@@ -391,15 +396,18 @@ export async function checkIfLiked(tripId: string, userId: string): Promise<bool
 // ============================================
 
 export async function toggleFavorite(tripId: string, userId: string): Promise<{ isFavorited: boolean; favoritesCount: number }> {
-    // Check if already favorited
-    const { data: existing } = await supabase
+    // Check if already favorited - use simple query
+    const { data: existing, error: checkError } = await supabase
         .from("trip_favorites")
         .select("id")
         .eq("trip_id", tripId)
-        .eq("user_id", userId)
-        .maybeSingle();
+        .eq("user_id", userId);
 
-    if (existing) {
+    if (checkError) throw checkError;
+
+    const isCurrentlyFavorited = existing && existing.length > 0;
+
+    if (isCurrentlyFavorited) {
         // Unfavorite
         const { error } = await supabase
             .from("trip_favorites")
@@ -417,13 +425,15 @@ export async function toggleFavorite(tripId: string, userId: string): Promise<{ 
         if (error) throw error;
     }
 
-    // Get updated favorites count from trip_favorites table (RLS allows everyone to SELECT)
-    const { data: favoritesData } = await supabase
+    // Get updated favorites count
+    const { data: favoritesData, error: countError } = await supabase
         .from("trip_favorites")
         .select("id")
         .eq("trip_id", tripId);
 
-    return { isFavorited: !existing, favoritesCount: favoritesData?.length || 0 };
+    if (countError) throw countError;
+
+    return { isFavorited: !isCurrentlyFavorited, favoritesCount: favoritesData?.length || 0 };
 }
 
 export async function checkIfFavorited(tripId: string, userId: string): Promise<boolean> {

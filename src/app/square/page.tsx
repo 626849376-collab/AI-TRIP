@@ -75,22 +75,7 @@ export default function SquarePage() {
             console.log("Loading trips...");
             const result = await getPublicTrips();
             console.log("Trips loaded:", result);
-
-            // 检查用户是否已点赞/收藏每个行程
-            if (user?.id && result.data) {
-                const tripsWithStatus = await Promise.all(
-                    result.data.map(async (trip: any) => {
-                        const [isLiked, isFavorited] = await Promise.all([
-                            checkIfLiked(trip.id, user.id),
-                            checkIfFavorited(trip.id, user.id),
-                        ]);
-                        return { ...trip, is_liked: isLiked, is_favorited: isFavorited };
-                    })
-                );
-                setTrips(tripsWithStatus);
-            } else {
-                setTrips(result.data || []);
-            }
+            setTrips(result.data || []);
         } catch (error) {
             console.error("Error loading trips:", error);
             if (error instanceof Error) {
