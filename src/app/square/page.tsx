@@ -79,8 +79,8 @@ export default function SquarePage() {
 
     const loadTrips = async () => {
         try {
-            const publicTrips = await getPublicTrips();
-            setTrips(Array.isArray(publicTrips) ? publicTrips : []);
+            const result = await getPublicTrips();
+            setTrips(result.data || []);
         } catch (error) {
             console.error("Error loading trips:", error);
             toast.error("加载行程列表失败");
