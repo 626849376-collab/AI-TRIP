@@ -433,33 +433,40 @@ export async function getPublicTrips(page: number = 1, pageSize: number = 12) {
     const from = (page - 1) * pageSize;
     const to = from + pageSize - 1;
 
-    // Use explicit foreign key reference to avoid RLS join issues
-    const { data, error, count } = await supabase
+    // First get the trips without the join to avoid RLS issues
+    const { data: trips, error: tripsError, count } = await supabase
         .from("trip_plans")
-        .select(`
-            *,
-            user_profiles!trip_plans_user_id_fkey(name, avatar_url)
-        `, { count: "exact" })
+        .select("*", { count: "exact" })
         .eq("is_public", true)
         .eq("is_deleted", false)
         .order("likes_count", { ascending: false })
         .range(from, to);
 
-    if (error) {
-        console.error("getPublicTrips error:", error);
-        // Fallback: try without the join
-        const { data: fallbackData, error: fallbackError } = await supabase
-            .from("trip_plans")
-            .select("*")
-            .eq("is_public", true)
-            .eq("is_deleted", false)
-            .order("likes_count", { ascending: false })
-            .range(from, to);
+    if (tripsError) throw tripsError;
 
-        if (fallbackError) throw fallbackError;
-        return { data: fallbackData as any[], count: fallbackData?.length || 0 };
+    // Then fetch user profiles for each trip separately
+    if (trips && trips.length > 0) {
+        const userIds = [...new Set(trips.map(t => t.user_id))];
+        const { data: profiles } = await supabase
+            .from("user_profiles")
+            .select("id, name, avatar_url")
+            .in("id", userIds);
+
+        // Attach profiles to trips
+        const profileMap = (profiles || []).reduce((acc: any, p: any) => {
+            acc[p.id] = p;
+            return acc;
+        }, {});
+
+        const enrichedTrips = trips.map(trip => ({
+            ...trip,
+            user_profiles: profileMap[trip.user_id] || null
+        }));
+
+        return { data: enrichedTrips as any[], count: count || 0 };
     }
-    return { data: data as any[], count: count || 0 };
+
+    return { data: trips as any[], count: count || 0 };
 }
 
 
