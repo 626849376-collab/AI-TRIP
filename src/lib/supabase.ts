@@ -339,7 +339,7 @@ export async function getTripByShareCode(shareCode: string) {
 // 点赞功能
 // ============================================
 
-export async function toggleLike(tripId: string, userId: string): Promise<boolean> {
+export async function toggleLike(tripId: string, userId: string): Promise<{ isLiked: boolean; likesCount: number }> {
     // Check if already liked - use maybeSingle() instead of single() to avoid error when no rows
     const { data: existing } = await supabase
         .from("trip_likes")
@@ -357,7 +357,6 @@ export async function toggleLike(tripId: string, userId: string): Promise<boolea
             .eq("user_id", userId);
 
         if (error) throw error;
-        return false; // is now not liked
     } else {
         // Like
         const { error } = await supabase
@@ -365,8 +364,15 @@ export async function toggleLike(tripId: string, userId: string): Promise<boolea
             .insert({ trip_id: tripId, user_id: userId });
 
         if (error) throw error;
-        return true; // is now liked
     }
+
+    // Get updated likes count
+    const { count } = await supabase
+        .from("trip_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("trip_id", tripId);
+
+    return { isLiked: !existing, likesCount: count || 0 };
 }
 
 export async function checkIfLiked(tripId: string, userId: string): Promise<boolean> {
@@ -384,7 +390,7 @@ export async function checkIfLiked(tripId: string, userId: string): Promise<bool
 // 收藏功能
 // ============================================
 
-export async function toggleFavorite(tripId: string, userId: string): Promise<boolean> {
+export async function toggleFavorite(tripId: string, userId: string): Promise<{ isFavorited: boolean; favoritesCount: number }> {
     // Check if already favorited - use maybeSingle() instead of single() to avoid error when no rows
     const { data: existing } = await supabase
         .from("trip_favorites")
@@ -402,7 +408,6 @@ export async function toggleFavorite(tripId: string, userId: string): Promise<bo
             .eq("user_id", userId);
 
         if (error) throw error;
-        return false; // is now not favorited
     } else {
         // Favorite
         const { error } = await supabase
@@ -410,8 +415,15 @@ export async function toggleFavorite(tripId: string, userId: string): Promise<bo
             .insert({ trip_id: tripId, user_id: userId });
 
         if (error) throw error;
-        return true; // is now favorited
     }
+
+    // Get updated favorites count
+    const { count } = await supabase
+        .from("trip_favorites")
+        .select("*", { count: "exact", head: true })
+        .eq("trip_id", tripId);
+
+    return { isFavorited: !existing, favoritesCount: count || 0 };
 }
 
 export async function checkIfFavorited(tripId: string, userId: string): Promise<boolean> {
@@ -444,15 +456,41 @@ export async function getPublicTrips(page: number = 1, pageSize: number = 12) {
 
     if (tripsError) throw tripsError;
 
-    // Then fetch user profiles for each trip separately
+    // Then fetch user profiles and counts for each trip separately
     if (trips && trips.length > 0) {
+        const tripIds = trips.map(t => t.id);
         const userIds = [...new Set(trips.map(t => t.user_id))];
+
+        // Fetch user profiles
         const { data: profiles } = await supabase
             .from("user_profiles")
             .select("id, name, avatar_url")
             .in("id", userIds);
 
-        // Attach profiles to trips
+        // Fetch likes count for each trip
+        const { data: likesData } = await supabase
+            .from("trip_likes")
+            .select("trip_id")
+            .in("trip_id", tripIds);
+
+        // Fetch favorites count for each trip
+        const { data: favoritesData } = await supabase
+            .from("trip_favorites")
+            .select("trip_id")
+            .in("trip_id", tripIds);
+
+        // Calculate counts
+        const likesCountMap: Record<string, number> = {};
+        (likesData || []).forEach((l: any) => {
+            likesCountMap[l.trip_id] = (likesCountMap[l.trip_id] || 0) + 1;
+        });
+
+        const favoritesCountMap: Record<string, number> = {};
+        (favoritesData || []).forEach((f: any) => {
+            favoritesCountMap[f.trip_id] = (favoritesCountMap[f.trip_id] || 0) + 1;
+        });
+
+        // Attach profiles and counts to trips
         const profileMap = (profiles || []).reduce((acc: any, p: any) => {
             acc[p.id] = p;
             return acc;
@@ -460,7 +498,9 @@ export async function getPublicTrips(page: number = 1, pageSize: number = 12) {
 
         const enrichedTrips = trips.map(trip => ({
             ...trip,
-            user_profiles: profileMap[trip.user_id] || null
+            user_profiles: profileMap[trip.user_id] || null,
+            likes_count: likesCountMap[trip.id] || 0,
+            favorites_count: favoritesCountMap[trip.id] || 0,
         }));
 
         return { data: enrichedTrips as any[], count: count || 0 };

@@ -112,38 +112,18 @@ export default function SquarePage() {
             const trip = trips.find((t) => t.id === tripId);
             if (!trip || !user?.id) return;
 
-            // 乐观更新 UI
-            const wasLiked = trip.is_liked;
+            // 调用 toggleLike 函数获取服务器返回的准确状态和计数
+            const result = await toggleLike(tripId, user.id);
+
+            // 使用服务器返回的准确数据更新 UI
             setTrips((prev) => prev.map((t) =>
                 t.id === tripId ? {
                     ...t,
-                    is_liked: !wasLiked,
-                    likes_count: t.likes_count + (wasLiked ? -1 : 1)
+                    is_liked: result.isLiked,
+                    likes_count: result.likesCount
                 } : t
             ));
-
-            // 调用 toggleLike 函数
-            const isNowLiked = await toggleLike(tripId, user.id);
-
-            // 如果服务器返回状态与乐观更新不一致，修正
-            if (isNowLiked === wasLiked) {
-                setTrips((prev) => prev.map((t) =>
-                    t.id === tripId ? {
-                        ...t,
-                        is_liked: isNowLiked,
-                        likes_count: t.likes_count + (isNowLiked ? 1 : -1)
-                    } : t
-                ));
-            }
         } catch (error: any) {
-            // 出错时回滚
-            setTrips((prev) => prev.map((t) =>
-                t.id === tripId ? {
-                    ...t,
-                    is_liked: !t.is_liked,
-                    likes_count: t.likes_count + (t.is_liked ? 1 : -1)
-                } : t
-            ));
             toast.error("操作失败");
         }
     };
@@ -153,38 +133,18 @@ export default function SquarePage() {
             const trip = trips.find((t) => t.id === tripId);
             if (!trip || !user?.id) return;
 
-            // 乐观更新 UI
-            const wasFavorited = trip.is_favorited;
+            // 调用 toggleFavorite 函数获取服务器返回的准确状态和计数
+            const result = await toggleFavorite(tripId, user.id);
+
+            // 使用服务器返回的准确数据更新 UI
             setTrips((prev) => prev.map((t) =>
                 t.id === tripId ? {
                     ...t,
-                    is_favorited: !wasFavorited,
-                    favorites_count: t.favorites_count + (wasFavorited ? -1 : 1)
+                    is_favorited: result.isFavorited,
+                    favorites_count: result.favoritesCount
                 } : t
             ));
-
-            // 调用 toggleFavorite 函数
-            const isNowFavorited = await toggleFavorite(tripId, user.id);
-
-            // 如果服务器返回状态与乐观更新不一致，修正
-            if (isNowFavorited === wasFavorited) {
-                setTrips((prev) => prev.map((t) =>
-                    t.id === tripId ? {
-                        ...t,
-                        is_favorited: isNowFavorited,
-                        favorites_count: t.favorites_count + (isNowFavorited ? 1 : -1)
-                    } : t
-                ));
-            }
         } catch (error: any) {
-            // 出错时回滚
-            setTrips((prev) => prev.map((t) =>
-                t.id === tripId ? {
-                    ...t,
-                    is_favorited: !t.is_favorited,
-                    favorites_count: t.favorites_count + (t.is_favorited ? 1 : -1)
-                } : t
-            ));
             toast.error("操作失败");
         }
     };
