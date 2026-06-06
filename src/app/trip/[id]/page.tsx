@@ -8,6 +8,7 @@ import {
     getTripPlan,
     getTripDetails,
     deleteTripPlan,
+    publishTripToSquare,
 } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
@@ -15,6 +16,7 @@ import { translations } from "@/lib/translations";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import SkeletonLoader from "@/components/SkeletonLoader";
+import ShareModal from "@/components/ShareModal";
 import {
     MapPin,
     ArrowLeft,
@@ -33,6 +35,8 @@ import {
     ChevronUp,
     Route,
     Printer,
+    Share2,
+    Globe,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -59,6 +63,8 @@ export default function TripDetailPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [expandedDay, setExpandedDay] = useState<number>(1);
     const [deleteConfirm, setDeleteConfirm] = useState(false);
+    const [showShareModal, setShowShareModal] = useState(false);
+    const [isPublic, setIsPublic] = useState(false);
 
     useEffect(() => {
         const init = async () => {
@@ -149,6 +155,13 @@ export default function TripDetailPage() {
                             </span>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2">
+                            <button
+                                onClick={() => setShowShareModal(true)}
+                                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-colors rounded-xl hover:bg-indigo-50 icon-button"
+                                title="分享行程"
+                            >
+                                <Share2 className="w-5 h-5" />
+                            </button>
                             <button
                                 onClick={handleExportPDF}
                                 className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary-600 transition-colors rounded-xl hover:bg-primary-50 icon-button"
@@ -436,6 +449,19 @@ export default function TripDetailPage() {
                     </div>
                 ))}
             </div>
+
+            {/* Share Modal */}
+            {showShareModal && (
+                <ShareModal
+                    tripId={params.id as string}
+                    isPublic={isPublic}
+                    onClose={() => setShowShareModal(false)}
+                    onVisibilityChange={(newVisibility) => {
+                        setIsPublic(newVisibility);
+                        setTripPlan((prev: any) => prev ? { ...prev, is_public: newVisibility } : prev);
+                    }}
+                />
+            )}
         </div>
     );
 }
