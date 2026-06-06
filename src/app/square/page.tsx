@@ -342,8 +342,8 @@ export default function SquarePage() {
                         <button
                             onClick={() => handleTabChange("popular")}
                             className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${activeTab === "popular"
-                                    ? "text-primary-600 border-primary-600"
-                                    : "text-gray-500 border-transparent hover:text-gray-700"
+                                ? "text-primary-600 border-primary-600"
+                                : "text-gray-500 border-transparent hover:text-gray-700"
                                 }`}
                         >
                             <Globe className="w-4 h-4 inline mr-1" />
@@ -352,8 +352,8 @@ export default function SquarePage() {
                         <button
                             onClick={() => handleTabChange("favorites")}
                             className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${activeTab === "favorites"
-                                    ? "text-primary-600 border-primary-600"
-                                    : "text-gray-500 border-transparent hover:text-gray-700"
+                                ? "text-primary-600 border-primary-600"
+                                : "text-gray-500 border-transparent hover:text-gray-700"
                                 }`}
                         >
                             <Star className="w-4 h-4 inline mr-1" />
@@ -479,7 +479,7 @@ export default function SquarePage() {
                                                         <User className="w-3.5 h-3.5 text-primary-600" />
                                                     </div>
                                                     <span className="text-sm text-gray-600">
-                                                        {trip.user_profile?.name || t.dashboard.user}
+                                                        {trip.user_profiles?.name || t.dashboard.user}
                                                     </span>
                                                 </div>
 
@@ -569,7 +569,7 @@ export default function SquarePage() {
                                                         <User className="w-3.5 h-3.5 text-primary-600" />
                                                     </div>
                                                     <span className="text-sm text-gray-600">
-                                                        {t.square.from} {trip.user_profile?.name || t.dashboard.user}
+                                                        {t.square.from} {trip.user_profiles?.name || t.dashboard.user}
                                                     </span>
                                                 </div>
 
@@ -592,8 +592,8 @@ export default function SquarePage() {
                                                     <button
                                                         onClick={() => handleLike(trip.id, index)}
                                                         className={`flex items-center gap-1 transition-colors ${trip.is_liked
-                                                                ? "text-red-500"
-                                                                : "text-gray-500 hover:text-red-500"
+                                                            ? "text-red-500"
+                                                            : "text-gray-500 hover:text-red-500"
                                                             }`}
                                                     >
                                                         <Heart
@@ -605,8 +605,8 @@ export default function SquarePage() {
                                                     <button
                                                         onClick={() => handleFavorite(trip.id, index)}
                                                         className={`flex items-center gap-1 transition-colors ${trip.is_favorited
-                                                                ? "text-yellow-500"
-                                                                : "text-gray-500 hover:text-yellow-500"
+                                                            ? "text-yellow-500"
+                                                            : "text-gray-500 hover:text-yellow-500"
                                                             }`}
                                                     >
                                                         <Bookmark

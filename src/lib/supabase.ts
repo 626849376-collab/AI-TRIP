@@ -94,7 +94,7 @@ export async function getProfile(userId: string) {
         .from("user_profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
     if (error) throw error;
     return data as any;
@@ -148,7 +148,7 @@ export async function createTripPlan(trip: {
         .from("user_profiles")
         .select("id")
         .eq("id", trip.user_id)
-        .single();
+        .maybeSingle();
 
     if (!existingProfile) {
         // Create profile if it doesn't exist
@@ -338,13 +338,13 @@ export async function getTripByShareCode(shareCode: string) {
 // ============================================
 
 export async function toggleLike(tripId: string, userId: string): Promise<boolean> {
-    // Check if already liked
+    // Check if already liked - use maybeSingle() instead of single() to avoid error when no rows
     const { data: existing } = await supabase
         .from("trip_likes")
         .select("id")
         .eq("trip_id", tripId)
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
     if (existing) {
         // Unlike
@@ -373,7 +373,7 @@ export async function checkIfLiked(tripId: string, userId: string): Promise<bool
         .select("id")
         .eq("trip_id", tripId)
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
     return !!data;
 }
@@ -383,13 +383,13 @@ export async function checkIfLiked(tripId: string, userId: string): Promise<bool
 // ============================================
 
 export async function toggleFavorite(tripId: string, userId: string): Promise<boolean> {
-    // Check if already favorited
+    // Check if already favorited - use maybeSingle() instead of single() to avoid error when no rows
     const { data: existing } = await supabase
         .from("trip_favorites")
         .select("id")
         .eq("trip_id", tripId)
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
     if (existing) {
         // Unfavorite
@@ -418,7 +418,7 @@ export async function checkIfFavorited(tripId: string, userId: string): Promise<
         .select("id")
         .eq("trip_id", tripId)
         .eq("user_id", userId)
-        .single();
+        .maybeSingle();
 
     return !!data;
 }
@@ -435,7 +435,7 @@ export async function getPublicTrips(page: number = 1, pageSize: number = 12) {
         .from("trip_plans")
         .select(`
             *,
-            user_profile:user_profiles(name, avatar_url)
+            user_profiles(name, avatar_url)
         `, { count: "exact" })
         .eq("is_public", true)
         .eq("is_deleted", false)
@@ -485,7 +485,7 @@ export async function getUserFavorites(userId: string) {
             trip_id,
             trip_plans(
                 *,
-                user_profile:user_profiles(name, avatar_url)
+                user_profiles(name, avatar_url)
             )
         `)
         .eq("user_id", userId)
