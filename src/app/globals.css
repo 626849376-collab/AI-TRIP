@@ -67,6 +67,16 @@
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
     }
+
+    /* Focus visible for accessibility */
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-primary-500;
+    }
+
+    /* Remove focus outline for mouse users */
+    :focus:not(:focus-visible) {
+        outline: none;
+    }
 }
 
 @layer utilities {
@@ -130,6 +140,116 @@
         -webkit-touch-callout: none;
         -webkit-user-select: none;
         user-select: none;
+    }
+
+    /* Page transition animations */
+    .page-enter {
+        animation: pageEnter 0.3s ease-out;
+    }
+
+    .slide-up {
+        animation: slideUp 0.3s ease-out;
+    }
+
+    .fade-in {
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .scale-in {
+        animation: scaleIn 0.2s ease-out;
+    }
+
+    /* Stagger animation for lists */
+    .stagger-enter>* {
+        opacity: 0;
+        transform: translateY(10px);
+        animation: staggerIn 0.3s ease-out forwards;
+    }
+
+    .stagger-enter>*:nth-child(1) {
+        animation-delay: 0ms;
+    }
+
+    .stagger-enter>*:nth-child(2) {
+        animation-delay: 50ms;
+    }
+
+    .stagger-enter>*:nth-child(3) {
+        animation-delay: 100ms;
+    }
+
+    .stagger-enter>*:nth-child(4) {
+        animation-delay: 150ms;
+    }
+
+    .stagger-enter>*:nth-child(5) {
+        animation-delay: 200ms;
+    }
+
+    .stagger-enter>*:nth-child(6) {
+        animation-delay: 250ms;
+    }
+
+    .stagger-enter>*:nth-child(7) {
+        animation-delay: 300ms;
+    }
+
+    .stagger-enter>*:nth-child(8) {
+        animation-delay: 350ms;
+    }
+}
+
+/* Animations */
+@keyframes pageEnter {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes staggerIn {
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
@@ -338,6 +458,30 @@ html {
     border-radius: 4px;
 }
 
+/* Skeleton variants */
+.skeleton-text {
+    height: 1em;
+    margin-bottom: 0.5em;
+    width: 100%;
+}
+
+.skeleton-title {
+    height: 1.5em;
+    width: 60%;
+    margin-bottom: 0.75em;
+}
+
+.skeleton-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+}
+
+.skeleton-card {
+    height: 200px;
+    border-radius: 12px;
+}
+
 /* Pull-to-refresh indicator */
 .pull-indicator {
     position: fixed;
@@ -382,4 +526,120 @@ html {
     background: #d1d5db;
     border-radius: 2px;
     margin: 8px auto;
+}
+
+/* Toast notification styles */
+.toast-success {
+    background: #059669 !important;
+    color: white !important;
+    font-size: 14px !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
+}
+
+.toast-error {
+    background: #dc2626 !important;
+    color: white !important;
+    font-size: 14px !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
+}
+
+.toast-info {
+    background: #2563eb !important;
+    color: white !important;
+    font-size: 14px !important;
+    padding: 12px 16px !important;
+    border-radius: 12px !important;
+}
+
+/* Confirmation dialog overlay */
+.confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    padding: 1rem;
+    animation: fadeIn 0.2s ease-out;
+}
+
+.confirm-dialog {
+    background: white;
+    border-radius: 16px;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    animation: scaleIn 0.2s ease-out;
+}
+
+/* Scroll to top button */
+.scroll-to-top {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 44px;
+    height: 44px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    cursor: pointer;
+    transition: all 0.2s;
+    opacity: 0;
+    transform: translateY(20px);
+    pointer-events: none;
+}
+
+.scroll-to-top.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+.scroll-to-top:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+/* Network status indicator */
+.network-status {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transform: translateY(-100%);
+    transition: transform 0.3s ease-out;
+}
+
+.network-status.offline {
+    transform: translateY(0);
+    background: #fef2f2;
+    color: #dc2626;
+    border-bottom: 1px solid #fecaca;
+}
+
+/* Keyboard shortcut hint */
+.kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.125rem 0.375rem;
+    font-size: 0.75rem;
+    font-family: monospace;
+    background: #f3f4f6;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    box-shadow: 0 1px 0 #d1d5db;
 }

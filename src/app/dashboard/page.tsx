@@ -8,6 +8,9 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { translations } from "@/lib/translations";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import SkeletonLoader from "@/components/SkeletonLoader";
+import EmptyState from "@/components/EmptyState";
 import {
     MapPin,
     Plus,
@@ -25,6 +28,8 @@ import {
     Globe,
     Upload,
     CheckCircle2,
+    Sparkles,
+    RefreshCw,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -36,7 +41,13 @@ export default function DashboardPage() {
     const t = translations[language];
     const [tripPlans, setTripPlans] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [publishingId, setPublishingId] = useState<string | null>(null);
+    const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; tripId: string | null }>({
+        isOpen: false,
+        tripId: null,
+    });
 
     useEffect(() => {
         const init = async () => {
@@ -55,12 +66,26 @@ export default function DashboardPage() {
                 setTripPlans(plans);
             } catch (error) {
                 console.error("Error loading dashboard:", error);
+                toast.error("加载失败，请刷新页面重试");
             } finally {
                 setIsLoading(false);
             }
         };
         init();
     }, [router, setUser, setProfile]);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        try {
+            const plans = await getTripPlans(user!.id);
+            setTripPlans(plans);
+            toast.success("已刷新");
+        } catch (error) {
+            toast.error("刷新失败");
+        } finally {
+            setIsRefreshing(false);
+        }
+    };
 
     const handleSignOut = async () => {
         try {
@@ -73,8 +98,6 @@ export default function DashboardPage() {
         }
     };
 
-    const [publishingId, setPublishingId] = useState<string | null>(null);
-
     const handlePublishToSquare = async (tripId: string) => {
         setPublishingId(tripId);
         try {
@@ -84,35 +107,55 @@ export default function DashboardPage() {
                     p.id === tripId ? { ...p, is_public: true } : p
                 )
             );
-            toast.success(t.dashboard.publishSuccess || "Trip published to Travel Square!");
+            toast.success(t.dashboard.publishSuccess || "行程已发布到旅行广场！");
         } catch (error: any) {
-            toast.error(t.dashboard.publishFailed || "Failed to publish trip");
+            toast.error(t.dashboard.publishFailed || "发布失败");
         } finally {
             setPublishingId(null);
         }
     };
 
-    const handleDeleteTrip = async (tripId: string) => {
-        if (!confirm(t.dashboard.deleteConfirm)) return;
+    const handleDeleteTrip = async () => {
+        if (!deleteConfirm.tripId) return;
         try {
-            await deleteTripPlan(tripId);
-            setTripPlans((prev) => prev.filter((p) => p.id !== tripId));
+            await deleteTripPlan(deleteConfirm.tripId);
+            setTripPlans((prev) => prev.filter((p) => p.id !== deleteConfirm.tripId));
             toast.success(t.dashboard.deleteSuccess);
         } catch (error: any) {
             toast.error(t.dashboard.deleteFailed);
+        } finally {
+            setDeleteConfirm({ isOpen: false, tripId: null });
         }
     };
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+            <div className="min-h-screen bg-gray-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <div className="bg-white rounded-2xl shadow-sm border p-4 sm:p-6 mb-6 sm:mb-8">
+                        <div className="skeleton skeleton-title" style={{ width: "40%" }} />
+                        <div className="skeleton skeleton-text" style={{ width: "60%", marginTop: 8 }} />
+                    </div>
+                    <SkeletonLoader type="card" count={3} />
+                </div>
             </div>
         );
     }
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* Confirmation Dialog */}
+            <ConfirmDialog
+                isOpen={deleteConfirm.isOpen}
+                onClose={() => setDeleteConfirm({ isOpen: false, tripId: null })}
+                onConfirm={handleDeleteTrip}
+                title={t.dashboard.deleteConfirm}
+                message="此操作不可撤销，删除后无法恢复。"
+                confirmText="确认删除"
+                cancelText="取消"
+                variant="danger"
+            />
+
             {/* Navigation */}
             <nav className="bg-white border-b sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -121,14 +164,25 @@ export default function DashboardPage() {
                             href="/dashboard"
                             className="flex items-center gap-2 touch-target"
                         >
-                            <MapPin className="w-6 h-6 text-primary-600" />
-                            <span className="text-lg sm:text-xl font-bold text-gray-900">
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
+                                <MapPin className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
                                 Travel Planner
                             </span>
                         </Link>
 
                         {/* Desktop Nav */}
                         <div className="hidden md:flex items-center gap-4">
+                            <button
+                                onClick={handleRefresh}
+                                disabled={isRefreshing}
+                                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 rounded-xl hover:bg-gray-50 transition-colors touch-target"
+                                title="刷新"
+                            >
+                                <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                                <span className="text-sm">刷新</span>
+                            </button>
                             <LanguageSwitcher />
                             <Link
                                 href="/profile"
@@ -148,6 +202,14 @@ export default function DashboardPage() {
 
                         {/* Mobile Menu Button */}
                         <div className="flex items-center gap-2 md:hidden">
+                            <button
+                                onClick={handleRefresh}
+                                disabled={isRefreshing}
+                                className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors icon-button"
+                                title="刷新"
+                            >
+                                <RefreshCw className={`w-4 h-4 text-gray-600 ${isRefreshing ? "animate-spin" : ""}`} />
+                            </button>
                             <LanguageSwitcher />
                             <button
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -164,7 +226,7 @@ export default function DashboardPage() {
 
                     {/* Mobile Nav */}
                     {isMenuOpen && (
-                        <div className="md:hidden py-4 border-t">
+                        <div className="md:hidden py-4 border-t animate-fade-in">
                             <div className="flex flex-col gap-2">
                                 <Link
                                     href="/profile"
@@ -191,7 +253,7 @@ export default function DashboardPage() {
             </nav>
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 page-enter">
                 {/* Welcome Section */}
                 <div className="bg-white rounded-2xl shadow-sm border p-4 sm:p-6 mb-6 sm:mb-8">
                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -205,7 +267,7 @@ export default function DashboardPage() {
                         </div>
                         <Link
                             href="/trip/create"
-                            className="gradient-primary text-white px-5 sm:px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2 w-full sm:w-auto justify-center touch-target"
+                            className="gradient-primary text-white px-5 sm:px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2 w-full sm:w-auto justify-center touch-target shadow-sm hover:shadow-md"
                         >
                             <Plus className="w-5 h-5" />
                             {t.dashboard.createNew}
@@ -215,41 +277,43 @@ export default function DashboardPage() {
 
                 {/* Trip Plans */}
                 <div>
-                    <h2 className="text-lg sm:text-xl font-semibold text-gray-900 mb-4 sm:mb-6">
-                        {t.dashboard.myPlans}
-                    </h2>
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                            {t.dashboard.myPlans}
+                        </h2>
+                        <span className="text-sm text-gray-400">
+                            共 {tripPlans.length} 个计划
+                        </span>
+                    </div>
 
                     {tripPlans.length === 0 ? (
-                        <div className="bg-white rounded-2xl shadow-sm border p-8 sm:p-12 text-center">
-                            <MapPin className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
-                            <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                {t.dashboard.noPlans}
-                            </h3>
-                            <p className="text-sm sm:text-base text-gray-600 mb-6">
-                                {t.dashboard.noPlansDesc}
-                            </p>
-                            <Link
-                                href="/trip/create"
-                                className="gradient-primary text-white px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2 touch-target"
-                            >
-                                <Plus className="w-5 h-5" />
-                                {t.dashboard.createPlan}
-                            </Link>
-                        </div>
+                        <EmptyState
+                            icon="map"
+                            title={t.dashboard.noPlans}
+                            description={t.dashboard.noPlansDesc}
+                            action={{
+                                label: t.dashboard.createPlan,
+                                href: "/trip/create",
+                            }}
+                        />
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 stagger-enter">
                             {tripPlans.map((plan) => (
                                 <div
                                     key={plan.id}
-                                    className="bg-white rounded-2xl shadow-sm border hover:shadow-md transition-shadow overflow-hidden group"
+                                    className="bg-white rounded-2xl shadow-sm border hover:shadow-md hover:border-emerald-200 transition-all duration-300 overflow-hidden group"
                                 >
+                                    {/* Card Header Gradient */}
+                                    <div className="h-2 bg-gradient-to-r from-emerald-400 to-green-500" />
+
                                     <div className="p-4 sm:p-6">
                                         <div className="flex items-start justify-between mb-4">
                                             <div className="min-w-0 flex-1">
-                                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 truncate">
+                                                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1 truncate group-hover:text-emerald-600 transition-colors">
                                                     {plan.title}
                                                 </h3>
-                                                <p className="text-sm text-gray-500 truncate">
+                                                <p className="text-sm text-gray-500 truncate flex items-center gap-1">
+                                                    <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                                                     {plan.destination}
                                                 </p>
                                             </div>
@@ -257,22 +321,15 @@ export default function DashboardPage() {
 
                                         <div className="space-y-2 mb-4">
                                             <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <Calendar className="w-4 h-4 flex-shrink-0" />
+                                                <Calendar className="w-4 h-4 flex-shrink-0 text-emerald-500" />
                                                 <span className="truncate">
-                                                    {formatDate(
-                                                        plan.start_date
-                                                    )}{" "}
-                                                    -{" "}
-                                                    {formatDate(plan.end_date)}
+                                                    {formatDate(plan.start_date)} - {formatDate(plan.end_date)}
                                                 </span>
                                             </div>
                                             <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                <Wallet className="w-4 h-4 flex-shrink-0" />
+                                                <Wallet className="w-4 h-4 flex-shrink-0 text-emerald-500" />
                                                 <span>
-                                                    {t.dashboard.budget}：{" "}
-                                                    {formatCurrency(
-                                                        plan.budget
-                                                    )}
+                                                    {t.dashboard.budget}：{formatCurrency(plan.budget)}
                                                 </span>
                                             </div>
                                         </div>
@@ -280,18 +337,19 @@ export default function DashboardPage() {
                                         <div className="flex items-center gap-2">
                                             <Link
                                                 href={`/trip/${plan.id}`}
-                                                className="flex-1 text-center text-sm bg-primary-50 text-primary-700 py-2.5 rounded-lg hover:bg-primary-100 transition-colors touch-target"
+                                                className="flex-1 text-center text-sm bg-emerald-50 text-emerald-700 py-2.5 rounded-lg hover:bg-emerald-100 transition-colors font-medium touch-target"
                                             >
-                                                {t.dashboard.viewDetails}
+                                                <span className="flex items-center justify-center gap-1">
+                                                    {t.dashboard.viewDetails}
+                                                    <ArrowRight className="w-3.5 h-3.5" />
+                                                </span>
                                             </Link>
                                             {!plan.is_public ? (
                                                 <button
-                                                    onClick={() =>
-                                                        handlePublishToSquare(plan.id)
-                                                    }
+                                                    onClick={() => handlePublishToSquare(plan.id)}
                                                     disabled={publishingId === plan.id}
                                                     className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-emerald-500 transition-colors disabled:opacity-50 rounded-xl hover:bg-emerald-50 icon-button"
-                                                    title={t.dashboard.publishToSquare || "Publish to Travel Square"}
+                                                    title={t.dashboard.publishToSquare || "发布到旅行广场"}
                                                 >
                                                     {publishingId === plan.id ? (
                                                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -300,15 +358,14 @@ export default function DashboardPage() {
                                                     )}
                                                 </button>
                                             ) : (
-                                                <div className="w-10 h-10 flex items-center justify-center text-emerald-500" title={t.dashboard.published || "Published"}>
+                                                <div className="w-10 h-10 flex items-center justify-center text-emerald-500" title={t.dashboard.published || "已发布"}>
                                                     <CheckCircle2 className="w-4 h-4" />
                                                 </div>
                                             )}
                                             <button
-                                                onClick={() =>
-                                                    handleDeleteTrip(plan.id)
-                                                }
+                                                onClick={() => setDeleteConfirm({ isOpen: true, tripId: plan.id })}
                                                 className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 icon-button"
+                                                title={t.dashboard.deleteConfirm}
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>

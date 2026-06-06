@@ -13,6 +13,8 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { translations } from "@/lib/translations";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import SkeletonLoader from "@/components/SkeletonLoader";
 import {
     MapPin,
     ArrowLeft,
@@ -30,10 +32,10 @@ import {
     ChevronDown,
     ChevronUp,
     Route,
+    Printer,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate, formatCurrency } from "@/lib/utils";
-import ShareModal from "@/components/ShareModal";
 import dynamic from "next/dynamic";
 
 const RouteMap = dynamic(() => import("@/components/RouteMap"), {
@@ -56,8 +58,7 @@ export default function TripDetailPage() {
     const [tripDetails, setTripDetails] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [expandedDay, setExpandedDay] = useState<number>(1);
-    const [showShareModal, setShowShareModal] = useState(false);
-    const [isPublic, setIsPublic] = useState(false);
+    const [deleteConfirm, setDeleteConfirm] = useState(false);
 
     useEffect(() => {
         const init = async () => {
@@ -91,13 +92,14 @@ export default function TripDetailPage() {
     }, [params.id, router, setUser]);
 
     const handleDelete = async () => {
-        if (!confirm(t.trip.deleteConfirm)) return;
         try {
             await deleteTripPlan(params.id as string);
             toast.success(t.trip.deleteSuccess);
             router.push("/dashboard");
         } catch (error: any) {
             toast.error(t.trip.deleteFailed);
+        } finally {
+            setDeleteConfirm(false);
         }
     };
 
@@ -107,14 +109,28 @@ export default function TripDetailPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+            <div className="min-h-screen bg-gray-50">
+                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                    <SkeletonLoader type="detail" />
+                </div>
             </div>
         );
     }
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* Confirmation Dialog */}
+            <ConfirmDialog
+                isOpen={deleteConfirm}
+                onClose={() => setDeleteConfirm(false)}
+                onConfirm={handleDelete}
+                title={t.trip.deleteConfirm}
+                message="此操作不可撤销，删除后所有行程数据将永久丢失。"
+                confirmText="确认删除"
+                cancelText="取消"
+                variant="danger"
+            />
+
             {/* Header */}
             <header className="bg-white border-b sticky top-0 z-50">
                 <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -141,7 +157,7 @@ export default function TripDetailPage() {
                                 <Download className="w-5 h-5" />
                             </button>
                             <button
-                                onClick={handleDelete}
+                                onClick={() => setDeleteConfirm(true)}
                                 className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 icon-button"
                                 title={t.trip.delete}
                             >
@@ -154,7 +170,7 @@ export default function TripDetailPage() {
             </header>
 
             {/* Trip Info */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 page-enter">
                 <div className="bg-white rounded-2xl shadow-sm border p-4 sm:p-6 mb-4 sm:mb-6">
                     <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
                         {tripPlan?.title}
@@ -206,6 +222,7 @@ export default function TripDetailPage() {
                                 )
                             }
                             className="w-full flex items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors touch-target"
+                            aria-expanded={expandedDay === detail.day_number}
                         >
                             <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
