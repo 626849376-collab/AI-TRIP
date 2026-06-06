@@ -11,16 +11,19 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import {
-    MapPin,
     ArrowLeft,
     Loader2,
+    Leaf,
     User,
     Mail,
     Camera,
     LogOut,
     Save,
     CheckCircle2,
-    AlertCircle,
+    Sparkles,
+    Shield,
+    Clock,
+    Fingerprint,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -103,8 +106,8 @@ export default function ProfilePage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gray-50">
-                <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
+                <div className="max-w-lg mx-auto px-4 sm:px-6 py-6 sm:py-8">
                     <SkeletonLoader type="profile" />
                 </div>
             </div>
@@ -112,7 +115,7 @@ export default function ProfilePage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
             {/* Confirmation Dialog */}
             <ConfirmDialog
                 isOpen={showSignOutConfirm}
@@ -126,25 +129,29 @@ export default function ProfilePage() {
             />
 
             {/* Header */}
-            <header className="bg-white border-b sticky top-0 z-50">
-                <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
+            <header className="bg-white/80 backdrop-blur-xl border-b border-emerald-100/50 sticky top-0 z-50">
+                <div className="max-w-lg mx-auto px-4 sm:px-6">
+                    <div className="flex items-center justify-between h-16 sm:h-20">
                         <Link
                             href="/dashboard"
-                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 touch-target"
+                            className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-all duration-300 touch-target group"
                         >
-                            <ArrowLeft className="w-5 h-5" />
-                            <span className="hidden sm:inline">{t.profile.back}</span>
+                            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
+                            <span className="hidden sm:inline font-medium">{t.profile.back}</span>
                         </Link>
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-5 h-5 text-primary-600" />
-                            <span className="font-semibold text-sm sm:text-base">{t.profile.title}</span>
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-sm">
+                                <Leaf className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="font-bold text-sm sm:text-base bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
+                                {t.profile.title}
+                            </span>
                         </div>
                         <div className="flex items-center gap-2">
                             <LanguageSwitcher />
                             <button
                                 onClick={() => setShowSignOutConfirm(true)}
-                                className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-600 transition-colors touch-target"
+                                className="flex items-center gap-1.5 text-sm text-emerald-500 hover:text-red-500 transition-all duration-300 touch-target px-3 py-2 rounded-xl hover:bg-red-50"
                             >
                                 <LogOut className="w-4 h-4" />
                                 <span className="hidden sm:inline">{t.profile.signOut}</span>
@@ -155,71 +162,82 @@ export default function ProfilePage() {
             </header>
 
             {/* Profile Content */}
-            <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 page-enter">
-                <div className="bg-white rounded-2xl shadow-sm border p-6 sm:p-8">
-                    {/* Avatar */}
-                    <div className="flex flex-col items-center mb-6 sm:mb-8">
-                        <div className="relative mb-4 group">
-                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-lg">
-                                <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
+            <main className="max-w-lg mx-auto px-4 sm:px-6 py-6 sm:py-10 page-enter space-y-5 sm:space-y-6">
+                {/* Profile Card */}
+                <div className="relative bg-white/90 backdrop-blur-xl rounded-3xl shadow-lg shadow-emerald-100/50 border border-emerald-100/50 p-6 sm:p-8 hover:shadow-xl hover:shadow-emerald-100/50 transition-all duration-500 overflow-hidden">
+                    {/* Decorative top gradient line */}
+                    <div className="absolute top-0 left-6 right-6 h-1 bg-gradient-to-r from-emerald-400 via-green-500 to-emerald-600 rounded-full opacity-60" />
+
+                    {/* Avatar Section */}
+                    <div className="flex flex-col items-center mb-8 sm:mb-10">
+                        <div className="relative mb-5 group">
+                            {/* Decorative ring */}
+                            <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-emerald-200 via-green-200 to-emerald-300 opacity-0 group-hover:opacity-100 transition-all duration-500 blur-sm" />
+                            <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-gradient-to-br from-emerald-400 via-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-emerald-200/50 group-hover:shadow-xl group-hover:shadow-emerald-200/50 transition-all duration-500 group-hover:scale-105">
+                                <User className="w-12 h-12 sm:w-14 sm:h-14 text-white" />
                             </div>
                             <button
-                                className="absolute bottom-0 right-0 w-8 h-8 bg-white border-2 border-primary-500 rounded-full flex items-center justify-center text-primary-500 hover:bg-primary-50 transition-colors shadow-md icon-button"
+                                className="absolute bottom-0 right-0 w-9 h-9 bg-white border-2 border-emerald-400 rounded-full flex items-center justify-center text-emerald-500 hover:bg-emerald-50 hover:border-emerald-500 hover:scale-110 hover:rotate-12 transition-all duration-300 shadow-md icon-button"
                                 title="更换头像"
                                 onClick={() => toast.success("头像功能即将上线")}
                             >
                                 <Camera className="w-4 h-4" />
                             </button>
                             {/* Online status indicator */}
-                            <div className="absolute top-0 right-0 w-4 h-4 bg-green-400 border-2 border-white rounded-full" />
+                            <div className="absolute top-1 right-1 w-4 h-4 bg-emerald-400 border-2 border-white rounded-full animate-pulse" />
                         </div>
-                        <h1 className="text-lg sm:text-xl font-bold text-gray-900">
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-800 mb-1.5">
                             {profile?.name || t.profile.name}
                         </h1>
-                        <p className="text-gray-500 text-xs sm:text-sm">{profile?.email}</p>
+                        <div className="flex items-center gap-1.5 text-emerald-600/70 text-sm">
+                            <Mail className="w-4 h-4" />
+                            <span>{profile?.email}</span>
+                        </div>
                     </div>
 
                     {/* Edit Form */}
-                    <div className="space-y-5 sm:space-y-6">
+                    <div className="space-y-6 sm:space-y-7">
+                        {/* Name Field */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            <label className="block text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-1.5">
+                                <User className="w-4 h-4 text-emerald-500" />
                                 {t.profile.name}
                             </label>
                             <div className="relative">
-                                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="text"
                                     value={name}
                                     onChange={(e) => setName(e.target.value)}
                                     onKeyDown={handleKeyDown}
                                     placeholder="请输入您的昵称"
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none transition-shadow"
+                                    className="w-full px-4 py-3 bg-emerald-50/50 border border-emerald-200 rounded-xl focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400 outline-none transition-all duration-300 placeholder:text-emerald-300 text-gray-700 hover:border-emerald-300"
                                     maxLength={50}
                                 />
                                 {name.length > 0 && (
-                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                                    <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs text-emerald-400 font-medium bg-emerald-50 px-2 py-0.5 rounded-full">
                                         {name.length}/50
                                     </span>
                                 )}
                             </div>
                         </div>
 
+                        {/* Email Field */}
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                            <label className="block text-sm font-semibold text-emerald-800 mb-2 flex items-center gap-1.5">
+                                <Mail className="w-4 h-4 text-emerald-500" />
                                 {t.profile.email}
                             </label>
                             <div className="relative">
-                                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 <input
                                     type="email"
                                     value={profile?.email || ""}
                                     disabled
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-500 cursor-not-allowed"
+                                    className="w-full px-4 py-3 border border-emerald-100 rounded-xl bg-emerald-50/30 text-emerald-600 cursor-not-allowed"
                                 />
-                                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-500" />
+                                <CheckCircle2 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500" />
                             </div>
-                            <p className="text-xs text-gray-400 mt-1.5 flex items-center gap-1">
-                                <AlertCircle className="w-3 h-3" />
+                            <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1.5">
+                                <Sparkles className="w-3.5 h-3.5" />
                                 {t.profile.emailNote}
                             </p>
                         </div>
@@ -227,15 +245,15 @@ export default function ProfilePage() {
                         {/* Save button with unsaved changes indicator */}
                         <div className="pt-2">
                             {hasChanges && (
-                                <p className="text-xs text-amber-600 mb-2 flex items-center gap-1">
-                                    <AlertCircle className="w-3 h-3" />
+                                <p className="text-xs text-emerald-600 mb-3 flex items-center gap-1.5 animate-slide-up">
+                                    <Sparkles className="w-3.5 h-3.5" />
                                     您有未保存的更改
                                 </p>
                             )}
                             <button
                                 onClick={handleSave}
                                 disabled={isSaving || !hasChanges}
-                                className="w-full gradient-primary text-white py-2.5 rounded-lg font-medium hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-target shadow-sm hover:shadow-md"
+                                className="w-full bg-gradient-to-r from-emerald-500 via-green-500 to-emerald-600 text-white py-3 rounded-xl font-semibold hover:from-emerald-600 hover:via-green-600 hover:to-emerald-700 transition-all duration-300 disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2.5 touch-target shadow-lg shadow-emerald-200/50 hover:shadow-xl hover:shadow-emerald-200/50 hover:-translate-y-0.5 active:translate-y-0"
                             >
                                 {isSaving ? (
                                     <>
@@ -254,35 +272,58 @@ export default function ProfilePage() {
                 </div>
 
                 {/* Account Info Section */}
-                <div className="bg-white rounded-2xl shadow-sm border p-6 sm:p-8 mt-4 sm:mt-6">
-                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-4">
+                <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-lg shadow-emerald-100/50 border border-emerald-100/50 p-6 sm:p-8 hover:shadow-xl hover:shadow-emerald-100/50 transition-all duration-500">
+                    <h2 className="text-base sm:text-lg font-bold text-emerald-800 mb-6 flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
+                            <Shield className="w-4 h-4 text-white" />
+                        </div>
                         账户信息
                     </h2>
-                    <div className="space-y-3">
-                        <div className="flex items-center justify-between py-2">
-                            <span className="text-sm text-gray-600">注册时间</span>
-                            <span className="text-sm text-gray-900 font-medium">
+                    <div className="space-y-1">
+                        <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-emerald-50/50 transition-colors">
+                            <div className="flex items-center gap-2.5">
+                                <Clock className="w-4 h-4 text-emerald-400" />
+                                <span className="text-sm text-emerald-600">注册时间</span>
+                            </div>
+                            <span className="text-sm text-gray-700 font-semibold">
                                 {profile?.created_at
                                     ? new Date(profile.created_at).toLocaleDateString("zh-CN")
                                     : "未知"}
                             </span>
                         </div>
-                        <div className="border-t" />
-                        <div className="flex items-center justify-between py-2">
-                            <span className="text-sm text-gray-600">账户状态</span>
-                            <span className="inline-flex items-center gap-1 text-sm text-green-600 font-medium">
-                                <span className="w-2 h-2 bg-green-500 rounded-full" />
+                        <div className="border-t border-emerald-100/50 mx-4" />
+                        <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-emerald-50/50 transition-colors">
+                            <div className="flex items-center gap-2.5">
+                                <Shield className="w-4 h-4 text-emerald-400" />
+                                <span className="text-sm text-emerald-600">账户状态</span>
+                            </div>
+                            <span className="inline-flex items-center gap-1.5 text-sm text-emerald-600 font-semibold">
+                                <span className="relative flex h-2.5 w-2.5">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+                                </span>
                                 正常
                             </span>
                         </div>
-                        <div className="border-t" />
-                        <div className="flex items-center justify-between py-2">
-                            <span className="text-sm text-gray-600">用户 ID</span>
-                            <span className="text-sm text-gray-400 font-mono truncate max-w-[200px]">
+                        <div className="border-t border-emerald-100/50 mx-4" />
+                        <div className="flex items-center justify-between py-3 px-4 rounded-xl hover:bg-emerald-50/50 transition-colors">
+                            <div className="flex items-center gap-2.5">
+                                <Fingerprint className="w-4 h-4 text-emerald-400" />
+                                <span className="text-sm text-emerald-600">用户 ID</span>
+                            </div>
+                            <span className="text-sm text-emerald-500 font-mono bg-emerald-50/50 px-3 py-1 rounded-lg border border-emerald-100/50">
                                 {user?.id?.slice(0, 12)}...
                             </span>
                         </div>
                     </div>
+                </div>
+
+                {/* Footer */}
+                <div className="text-center py-4">
+                    <p className="text-xs text-emerald-300 flex items-center justify-center gap-1.5">
+                        <Leaf className="w-3 h-3" />
+                        AI Mini Travel Planner · 绿色出行
+                    </p>
                 </div>
             </main>
         </div>
