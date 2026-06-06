@@ -96,23 +96,23 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between h-16">
                         <Link
                             href="/dashboard"
-                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 touch-target"
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            <span>{t.profile.back}</span>
+                            <span className="hidden sm:inline">{t.profile.back}</span>
                         </Link>
                         <div className="flex items-center gap-2">
                             <MapPin className="w-5 h-5 text-primary-600" />
-                            <span className="font-semibold">{t.profile.title}</span>
+                            <span className="font-semibold text-sm sm:text-base">{t.profile.title}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <LanguageSwitcher />
                             <button
                                 onClick={handleSignOut}
-                                className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-600 transition-colors"
+                                className="flex items-center gap-1 text-sm text-gray-500 hover:text-red-600 transition-colors touch-target"
                             >
                                 <LogOut className="w-4 h-4" />
-                                {t.profile.signOut}
+                                <span className="hidden sm:inline">{t.profile.signOut}</span>
                             </button>
                         </div>
                     </div>
@@ -120,26 +120,26 @@ export default function ProfilePage() {
             </header>
 
             {/* Profile Content */}
-            <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white rounded-2xl shadow-sm border p-8">
+            <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                <div className="bg-white rounded-2xl shadow-sm border p-6 sm:p-8">
                     {/* Avatar */}
-                    <div className="flex flex-col items-center mb-8">
+                    <div className="flex flex-col items-center mb-6 sm:mb-8">
                         <div className="relative mb-4">
-                            <div className="w-24 h-24 rounded-full bg-primary-100 flex items-center justify-center">
-                                <User className="w-12 h-12 text-primary-600" />
+                            <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-primary-100 flex items-center justify-center">
+                                <User className="w-10 h-10 sm:w-12 sm:h-12 text-primary-600" />
                             </div>
-                            <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-colors">
+                            <button className="absolute bottom-0 right-0 w-8 h-8 bg-primary-500 rounded-full flex items-center justify-center text-white hover:bg-primary-600 transition-colors icon-button">
                                 <Camera className="w-4 h-4" />
                             </button>
                         </div>
-                        <h1 className="text-xl font-bold text-gray-900">
+                        <h1 className="text-lg sm:text-xl font-bold text-gray-900">
                             {profile?.name || t.profile.name}
                         </h1>
-                        <p className="text-gray-500 text-sm">{profile?.email}</p>
+                        <p className="text-gray-500 text-xs sm:text-sm">{profile?.email}</p>
                     </div>
 
                     {/* Edit Form */}
-                    <div className="space-y-6">
+                    <div className="space-y-5 sm:space-y-6">
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">
                                 {t.profile.name}
@@ -176,7 +176,7 @@ export default function ProfilePage() {
                         <button
                             onClick={handleSave}
                             disabled={isSaving}
-                            className="w-full gradient-primary text-white py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full gradient-primary text-white py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-target"
                         >
                             {isSaving ? (
                                 <>

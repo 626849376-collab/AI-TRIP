@@ -3,29 +3,33 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase, getCurrentUser, getProfile, getPublicTrips, toggleLike, toggleFavorite, checkIfLiked, checkIfFavorited, getUserFavorites, getTripPlans, publishTripToSquare } from "@/lib/supabase";
+import { supabase, getCurrentUser, getProfile, getPublicTrips, signOut } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { translations } from "@/lib/translations";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import {
     MapPin,
+    ArrowLeft,
+    Loader2,
     Heart,
     Bookmark,
+    MessageCircle,
+    Share2,
+    TrendingUp,
+    Clock,
+    Flame,
+    Star,
     Search,
-    Loader2,
-    User,
-    LogOut,
+    Filter,
+    Grid3X3,
+    List,
+    Globe,
+    ArrowRight,
     Menu,
     X,
-    Calendar,
-    Wallet,
-    ArrowRight,
-    Globe,
-    Star,
-    Upload,
-    CheckCircle2,
-    ChevronDown,
+    User,
+    LogOut,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -37,18 +41,10 @@ export default function SquarePage() {
     const t = translations[language];
     const [trips, setTrips] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [page, setPage] = useState(1);
-    const [totalCount, setTotalCount] = useState(0);
+    const [activeTab, setActiveTab] = useState("trending");
     const [searchQuery, setSearchQuery] = useState("");
+    const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const [activeTab, setActiveTab] = useState<"popular" | "favorites">("popular");
-    const [favorites, setFavorites] = useState<any[]>([]);
-    const [isLoadingFavorites, setIsLoadingFavorites] = useState(false);
-    const [myTrips, setMyTrips] = useState<any[]>([]);
-    const [isLoadingMyTrips, setIsLoadingMyTrips] = useState(false);
-    const [showMyTrips, setShowMyTrips] = useState(false);
-    const [publishingId, setPublishingId] = useState<string | null>(null);
 
     useEffect(() => {
         const init = async () => {
@@ -63,9 +59,9 @@ export default function SquarePage() {
                 const userProfile = await getProfile(currentUser.id);
                 setProfile(userProfile);
 
-                await loadTrips(1);
+                await loadTrips();
             } catch (error) {
-                console.error("Error loading square:", error);
+                console.error(error);
             } finally {
                 setIsLoading(false);
             }
@@ -73,120 +69,91 @@ export default function SquarePage() {
         init();
     }, [router, setUser, setProfile]);
 
-    const loadTrips = async (pageNum: number) => {
+    const loadTrips = async () => {
         try {
-            const result = await getPublicTrips(pageNum, 12);
-            if (pageNum === 1) {
-                setTrips(result.data);
-            } else {
-                setTrips((prev) => [...prev, ...result.data]);
-            }
-            setTotalCount(result.count);
-            setPage(pageNum);
+            const publicTrips = await getPublicTrips();
+            setTrips(publicTrips);
         } catch (error) {
             console.error("Error loading trips:", error);
         }
     };
 
-    const loadFavorites = async () => {
-        if (!user) return;
-        setIsLoadingFavorites(true);
+    const handleLike = async (tripId: string) => {
         try {
-            const data = await getUserFavorites(user.id);
-            setFavorites(data);
-        } catch (error) {
-            console.error("Error loading favorites:", error);
-        } finally {
-            setIsLoadingFavorites(false);
-        }
-    };
+            const trip = trips.find((t) => t.id === tripId);
+            if (!trip) return;
 
-    const loadMyTrips = async () => {
-        if (!user) return;
-        setIsLoadingMyTrips(true);
-        try {
-            const plans = await getTripPlans(user.id);
-            // Only show unpublished trips
-            setMyTrips(plans.filter((p: any) => !p.is_public));
-        } catch (error) {
-            console.error("Error loading my trips:", error);
-        } finally {
-            setIsLoadingMyTrips(false);
-        }
-    };
-
-    const handlePublishToSquare = async (tripId: string) => {
-        setPublishingId(tripId);
-        try {
-            await publishTripToSquare(tripId);
-            setMyTrips((prev) => prev.filter((p) => p.id !== tripId));
-            toast.success(t.dashboard.publishSuccess || "Trip published to Travel Square!");
-            // Reload the public trips
-            await loadTrips(1);
+            if (trip.is_liked) {
+                const { error } = await supabase
+                    .from("trip_likes")
+                    .delete()
+                    .eq("trip_id", tripId)
+                    .eq("user_id", user?.id);
+                if (error) throw error;
+                setTrips((prev) =>
+                    prev.map((t) =>
+                        t.id === tripId
+                            ? { ...t, is_liked: false, likes_count: t.likes_count - 1 }
+                            : t
+                    )
+                );
+            } else {
+                const { error } = await supabase
+                    .from("trip_likes")
+                    .insert({ trip_id: tripId, user_id: user?.id });
+                if (error) throw error;
+                setTrips((prev) =>
+                    prev.map((t) =>
+                        t.id === tripId
+                            ? { ...t, is_liked: true, likes_count: t.likes_count + 1 }
+                            : t
+                    )
+                );
+            }
         } catch (error: any) {
-            toast.error(t.dashboard.publishFailed || "Failed to publish trip");
-        } finally {
-            setPublishingId(null);
+            toast.error(t.square.likes || "Action failed");
         }
     };
 
-    const handleTabChange = (tab: "popular" | "favorites") => {
-        setActiveTab(tab);
-        if (tab === "favorites") {
-            loadFavorites();
-        }
-    };
-
-    const handleLoadMore = async () => {
-        setIsLoadingMore(true);
-        await loadTrips(page + 1);
-        setIsLoadingMore(false);
-    };
-
-    const handleLike = async (tripId: string, index: number) => {
-        if (!user) return;
+    const handleFavorite = async (tripId: string) => {
         try {
-            const isLiked = await toggleLike(tripId, user.id);
-            setTrips((prev) => {
-                const updated = [...prev];
-                if (updated[index]) {
-                    updated[index] = {
-                        ...updated[index],
-                        is_liked: isLiked,
-                        likes_count: (updated[index].likes_count || 0) + (isLiked ? 1 : -1),
-                    };
-                }
-                return updated;
-            });
-        } catch (error) {
-            console.error("Error toggling like:", error);
-        }
-    };
+            const trip = trips.find((t) => t.id === tripId);
+            if (!trip) return;
 
-    const handleFavorite = async (tripId: string, index: number) => {
-        if (!user) return;
-        try {
-            const isFavorited = await toggleFavorite(tripId, user.id);
-            setTrips((prev) => {
-                const updated = [...prev];
-                if (updated[index]) {
-                    updated[index] = {
-                        ...updated[index],
-                        is_favorited: isFavorited,
-                        favorites_count: (updated[index].favorites_count || 0) + (isFavorited ? 1 : -1),
-                    };
-                }
-                return updated;
-            });
-            toast.success(isFavorited ? t.square.favorited : t.square.favorites);
-        } catch (error) {
-            console.error("Error toggling favorite:", error);
+            if (trip.is_favorited) {
+                const { error } = await supabase
+                    .from("trip_favorites")
+                    .delete()
+                    .eq("trip_id", tripId)
+                    .eq("user_id", user?.id);
+                if (error) throw error;
+                setTrips((prev) =>
+                    prev.map((t) =>
+                        t.id === tripId
+                            ? { ...t, is_favorited: false, favorites_count: t.favorites_count - 1 }
+                            : t
+                    )
+                );
+            } else {
+                const { error } = await supabase
+                    .from("trip_favorites")
+                    .insert({ trip_id: tripId, user_id: user?.id });
+                if (error) throw error;
+                setTrips((prev) =>
+                    prev.map((t) =>
+                        t.id === tripId
+                            ? { ...t, is_favorited: true, favorites_count: t.favorites_count + 1 }
+                            : t
+                    )
+                );
+            }
+        } catch (error: any) {
+            toast.error(t.square.favorites || "Action failed");
         }
     };
 
     const handleSignOut = async () => {
         try {
-            const { signOut } = await import("@/lib/supabase");
             await signOut();
             clearAuth();
             router.push("/");
@@ -196,10 +163,28 @@ export default function SquarePage() {
         }
     };
 
-    const filteredTrips = trips.filter((trip) =>
-        trip.destination?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        trip.title?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    const filteredTrips = trips.filter((trip) => {
+        if (!searchQuery) return true;
+        const query = searchQuery.toLowerCase();
+        return (
+            trip.title?.toLowerCase().includes(query) ||
+            trip.destination?.toLowerCase().includes(query) ||
+            trip.profiles?.name?.toLowerCase().includes(query)
+        );
+    });
+
+    const sortedTrips = [...filteredTrips].sort((a, b) => {
+        switch (activeTab) {
+            case "trending":
+                return (b.likes_count || 0) - (a.likes_count || 0);
+            case "latest":
+                return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+            case "popular":
+                return (b.favorites_count || 0) - (a.favorites_count || 0);
+            default:
+                return 0;
+        }
+    });
 
     if (isLoading) {
         return (
@@ -209,42 +194,46 @@ export default function SquarePage() {
         );
     }
 
+    const tabs = [
+        { id: "trending", label: t.square.popular, icon: Flame },
+        { id: "latest", label: t.square.latest, icon: Clock },
+        { id: "popular", label: t.square.likes, icon: Star },
+    ];
+
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
             {/* Navigation */}
-            <nav className="bg-white border-b sticky top-0 z-50">
+            <nav className="bg-white/80 backdrop-blur-xl border-b sticky top-0 z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <Link
                             href="/dashboard"
-                            className="flex items-center gap-2"
+                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 touch-target"
                         >
-                            <MapPin className="w-6 h-6 text-primary-600" />
-                            <span className="text-xl font-bold text-gray-900">
-                                Travel Planner
-                            </span>
+                            <ArrowLeft className="w-5 h-5" />
+                            <span className="hidden sm:inline">{t.trip.back}</span>
                         </Link>
+
+                        <div className="flex items-center gap-2">
+                            <Globe className="w-5 h-5 text-indigo-600" />
+                            <span className="font-semibold text-sm sm:text-base bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                {t.square.title}
+                            </span>
+                        </div>
 
                         {/* Desktop Nav */}
                         <div className="hidden md:flex items-center gap-4">
-                            <Link
-                                href="/square"
-                                className="flex items-center gap-2 text-primary-600 font-medium"
-                            >
-                                <Globe className="w-5 h-5" />
-                                <span>{t.square.title}</span>
-                            </Link>
                             <LanguageSwitcher />
                             <Link
                                 href="/profile"
-                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                                className="flex items-center gap-2 text-gray-600 hover:text-gray-900 touch-target"
                             >
                                 <User className="w-5 h-5" />
                                 <span>{profile?.name || t.dashboard.user}</span>
                             </Link>
                             <button
                                 onClick={handleSignOut}
-                                className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors"
+                                className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors touch-target"
                             >
                                 <LogOut className="w-5 h-5" />
                                 <span>{t.dashboard.signOut}</span>
@@ -256,11 +245,12 @@ export default function SquarePage() {
                             <LanguageSwitcher />
                             <button
                                 onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors icon-button"
                             >
                                 {isMenuOpen ? (
-                                    <X className="w-6 h-6" />
+                                    <X className="w-5 h-5 text-gray-600" />
                                 ) : (
-                                    <Menu className="w-6 h-6" />
+                                    <Menu className="w-5 h-5 text-gray-600" />
                                 )}
                             </button>
                         </div>
@@ -269,26 +259,10 @@ export default function SquarePage() {
                     {/* Mobile Nav */}
                     {isMenuOpen && (
                         <div className="md:hidden py-4 border-t">
-                            <div className="flex flex-col gap-3">
-                                <Link
-                                    href="/square"
-                                    className="flex items-center gap-2 text-primary-600 py-2"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    <Globe className="w-5 h-5" />
-                                    <span>{t.square.title}</span>
-                                </Link>
-                                <Link
-                                    href="/dashboard"
-                                    className="flex items-center gap-2 text-gray-600 py-2"
-                                    onClick={() => setIsMenuOpen(false)}
-                                >
-                                    <MapPin className="w-5 h-5" />
-                                    <span>{t.dashboard.myPlans}</span>
-                                </Link>
+                            <div className="flex flex-col gap-2">
                                 <Link
                                     href="/profile"
-                                    className="flex items-center gap-2 text-gray-600 py-2"
+                                    className="flex items-center gap-2 text-gray-600 py-3 px-2 rounded-xl hover:bg-gray-50 transition-colors touch-target"
                                     onClick={() => setIsMenuOpen(false)}
                                 >
                                     <User className="w-5 h-5" />
@@ -299,7 +273,7 @@ export default function SquarePage() {
                                         setIsMenuOpen(false);
                                         handleSignOut();
                                     }}
-                                    className="flex items-center gap-2 text-red-600 py-2"
+                                    className="flex items-center gap-2 text-red-600 py-3 px-2 rounded-xl hover:bg-red-50 transition-colors touch-target"
                                 >
                                     <LogOut className="w-5 h-5" />
                                     <span>{t.dashboard.signOut}</span>
@@ -311,344 +285,164 @@ export default function SquarePage() {
             </nav>
 
             {/* Main Content */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {/* Header */}
-                <div className="mb-8">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h1 className="text-2xl font-bold text-gray-900">
-                                {t.square.title}
-                            </h1>
-                            <p className="text-gray-600 mt-1">
-                                {t.square.subtitle}
-                            </p>
-                        </div>
-                    </div>
-
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                {/* Search and Filters */}
+                <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
                     {/* Search Bar */}
-                    <div className="mt-4 relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                    <div className="relative">
+                        <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
                         <input
                             type="text"
-                            placeholder={t.square.search}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                            placeholder={t.square.search}
+                            className="w-full pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-white rounded-xl border border-gray-200 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none transition-all text-sm sm:text-base"
                         />
                     </div>
 
-                    {/* Tabs */}
-                    <div className="mt-6 flex gap-4 border-b border-gray-200">
-                        <button
-                            onClick={() => handleTabChange("popular")}
-                            className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${activeTab === "popular"
-                                ? "text-primary-600 border-primary-600"
-                                : "text-gray-500 border-transparent hover:text-gray-700"
-                                }`}
-                        >
-                            <Globe className="w-4 h-4 inline mr-1" />
-                            {t.square.popular}
-                        </button>
-                        <button
-                            onClick={() => handleTabChange("favorites")}
-                            className={`pb-3 px-1 text-sm font-medium border-b-2 transition-colors ${activeTab === "favorites"
-                                ? "text-primary-600 border-primary-600"
-                                : "text-gray-500 border-transparent hover:text-gray-700"
-                                }`}
-                        >
-                            <Star className="w-4 h-4 inline mr-1" />
-                            {t.square.myFavorites}
-                        </button>
+                    {/* Tabs and View Toggle */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                        <div className="flex items-center gap-1 sm:gap-2 bg-white rounded-xl p-1 border w-full sm:w-auto overflow-x-auto">
+                            {tabs.map((tab) => {
+                                const Icon = tab.icon;
+                                return (
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap touch-target ${activeTab === tab.id
+                                            ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-sm"
+                                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"
+                                            }`}
+                                    >
+                                        <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                                        {tab.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* View Toggle */}
+                        <div className="flex items-center gap-1 bg-white rounded-xl p-1 border">
+                            <button
+                                onClick={() => setViewMode("grid")}
+                                className={`p-2 rounded-lg transition-colors icon-button ${viewMode === "grid"
+                                    ? "bg-indigo-50 text-indigo-600"
+                                    : "text-gray-400 hover:text-gray-600"
+                                    }`}
+                            >
+                                <Grid3X3 className="w-4 h-4" />
+                            </button>
+                            <button
+                                onClick={() => setViewMode("list")}
+                                className={`p-2 rounded-lg transition-colors icon-button ${viewMode === "list"
+                                    ? "bg-indigo-50 text-indigo-600"
+                                    : "text-gray-400 hover:text-gray-600"
+                                    }`}
+                            >
+                                <List className="w-4 h-4" />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* Upload My Plan Section */}
-                <div className="mb-8">
-                    <button
-                        onClick={() => {
-                            setShowMyTrips(!showMyTrips);
-                            if (!showMyTrips && myTrips.length === 0) {
-                                loadMyTrips();
-                            }
-                        }}
-                        className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 rounded-xl hover:from-emerald-100 hover:to-teal-100 transition-all duration-300 group"
-                    >
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-                                <Upload className="w-5 h-5 text-white" />
-                            </div>
-                            <div className="text-left">
-                                <h3 className="font-semibold text-emerald-800">
-                                    {t.dashboard.publishToSquare || "Upload My Plan"}
-                                </h3>
-                                <p className="text-sm text-emerald-600">
-                                    {t.dashboard.publishDesc || "Share your travel plans with the community"}
-                                </p>
-                            </div>
-                        </div>
-                        <ChevronDown className={`w-5 h-5 text-emerald-500 transition-transform duration-300 ${showMyTrips ? "rotate-180" : ""}`} />
-                    </button>
+                {/* Trip Cards */}
+                {sortedTrips.length === 0 ? (
+                    <div className="text-center py-12 sm:py-20">
+                        <Globe className="w-12 h-12 sm:w-16 sm:h-16 text-gray-300 mx-auto mb-4" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                            {t.square.noTrips}
+                        </h3>
+                        <p className="text-sm sm:text-base text-gray-500 mb-6">
+                            {t.square.noTripsDesc}
+                        </p>
+                        <Link
+                            href="/dashboard"
+                            className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-6 py-2.5 rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-200 transition-all touch-target"
+                        >
+                            {t.trip.back}
+                            <ArrowRight className="w-4 h-4" />
+                        </Link>
+                    </div>
+                ) : (
+                    <div className={
+                        viewMode === "grid"
+                            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6"
+                            : "space-y-3 sm:space-y-4"
+                    }>
+                        {sortedTrips.map((trip) => (
+                            <div
+                                key={trip.id}
+                                className={`group bg-white rounded-2xl border hover:shadow-lg hover:border-indigo-200 transition-all duration-300 overflow-hidden ${viewMode === "list" ? "flex flex-col sm:flex-row" : ""
+                                    }`}
+                            >
+                                {/* Card Content */}
+                                <div className={`p-4 sm:p-6 ${viewMode === "list" ? "flex-1" : ""}`}>
+                                    {/* Header */}
+                                    <div className="flex items-start justify-between mb-3">
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
+                                                {trip.title}
+                                            </h3>
+                                            <p className="text-xs sm:text-sm text-gray-500 truncate">
+                                                {trip.destination}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-1 ml-2">
+                                            <span className="text-xs text-gray-400">
+                                                {trip.profiles?.name || t.square.from}
+                                            </span>
+                                        </div>
+                                    </div>
 
-                    {showMyTrips && (
-                        <div className="mt-3 bg-white border border-emerald-100 rounded-xl overflow-hidden ">
-                            {isLoadingMyTrips ? (
-                                <div className="flex justify-center py-8">
-                                    <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
-                                </div>
-                            ) : myTrips.length === 0 ? (
-                                <div className="p-8 text-center">
-                                    <CheckCircle2 className="w-12 h-12 text-emerald-300 mx-auto mb-3" />
-                                    <p className="text-emerald-700 font-medium">{t.dashboard.noUnpublished || "No unpublished plans"}</p>
-                                    <p className="text-sm text-emerald-500 mt-1">{t.dashboard.allPublished || "All your plans are already shared!"}</p>
-                                </div>
-                            ) : (
-                                <div className="divide-y divide-emerald-50">
-                                    {myTrips.map((trip: any) => (
-                                        <div key={trip.id} className="flex items-center justify-between p-4 hover:bg-emerald-50/50 transition-colors">
-                                            <div className="flex-1 min-w-0">
-                                                <h4 className="font-medium text-gray-900 truncate">{trip.title}</h4>
-                                                <p className="text-sm text-gray-500">{trip.destination} · {formatDate(trip.start_date)}</p>
-                                            </div>
+                                    {/* Info */}
+                                    <div className="flex items-center gap-3 text-xs sm:text-sm text-gray-500 mb-3">
+                                        <span className="flex items-center gap-1">
+                                            <MapPin className="w-3.5 h-3.5" />
+                                            {trip.destination}
+                                        </span>
+                                        <span>•</span>
+                                        <span>{formatDate(trip.start_date)}</span>
+                                    </div>
+
+                                    {/* Description */}
+                                    <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-4">
+                                        {trip.description || t.square.subtitle}
+                                    </p>
+
+                                    {/* Actions */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-1 sm:gap-2">
                                             <button
-                                                onClick={() => handlePublishToSquare(trip.id)}
-                                                disabled={publishingId === trip.id}
-                                                className="flex-shrink-0 ml-4 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-sm rounded-lg hover:from-emerald-600 hover:to-teal-600 transition-all disabled:opacity-50 inline-flex items-center gap-1.5"
+                                                onClick={() => handleLike(trip.id)}
+                                                className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm transition-colors touch-target ${trip.is_liked
+                                                    ? "text-red-500 bg-red-50"
+                                                    : "text-gray-400 hover:text-red-500 hover:bg-red-50"
+                                                    }`}
                                             >
-                                                {publishingId === trip.id ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    <Upload className="w-4 h-4" />
-                                                )}
-                                                <span>{t.dashboard.publish || "Publish"}</span>
+                                                <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${trip.is_liked ? "fill-current" : ""}`} />
+                                                <span>{trip.likes_count || 0}</span>
+                                            </button>
+                                            <button
+                                                onClick={() => handleFavorite(trip.id)}
+                                                className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm transition-colors touch-target ${trip.is_favorited
+                                                    ? "text-yellow-500 bg-yellow-50"
+                                                    : "text-gray-400 hover:text-yellow-500 hover:bg-yellow-50"
+                                                    }`}
+                                            >
+                                                <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${trip.is_favorited ? "fill-current" : ""}`} />
+                                                <span>{trip.favorites_count || 0}</span>
                                             </button>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                {/* Favorites Tab */}
-                {activeTab === "favorites" && (
-                    <div>
-                        {isLoadingFavorites ? (
-                            <div className="flex justify-center py-12">
-                                <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
-                            </div>
-                        ) : favorites.length === 0 ? (
-                            <div className="bg-white rounded-2xl shadow-sm border p-12 text-center">
-                                <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                    {t.square.myFavoritesEmpty}
-                                </h3>
-                                <p className="text-gray-600 mb-6">
-                                    {t.square.myFavoritesEmptyDesc}
-                                </p>
-                                <button
-                                    onClick={() => handleTabChange("popular")}
-                                    className="gradient-primary text-white px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity"
-                                >
-                                    {t.square.goToSquare}
-                                </button>
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {favorites.map((fav: any, index: number) => {
-                                    const trip = fav.trip_plans;
-                                    if (!trip) return null;
-                                    return (
-                                        <div
-                                            key={fav.trip_id}
-                                            className="bg-white rounded-2xl shadow-sm border hover:shadow-md transition-shadow overflow-hidden"
+                                        <Link
+                                            href={`/trip/${trip.id}`}
+                                            className="text-xs sm:text-sm text-indigo-600 hover:text-indigo-700 font-medium touch-target"
                                         >
-                                            <div className="p-6">
-                                                <div className="flex items-start justify-between mb-4">
-                                                    <div className="flex-1 min-w-0">
-                                                        <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">
-                                                            {trip.title}
-                                                        </h3>
-                                                        <p className="text-sm text-gray-500">
-                                                            {trip.destination}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
-                                                        <User className="w-3.5 h-3.5 text-primary-600" />
-                                                    </div>
-                                                    <span className="text-sm text-gray-600">
-                                                        {trip.user_profiles?.name || t.dashboard.user}
-                                                    </span>
-                                                </div>
-
-                                                <div className="space-y-2 mb-4">
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        <Calendar className="w-4 h-4" />
-                                                        <span>
-                                                            {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        <Wallet className="w-4 h-4" />
-                                                        <span>
-                                                            {t.dashboard.budget}：{formatCurrency(trip.budget)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-4 text-sm text-gray-500 mb-4">
-                                                    <span className="flex items-center gap-1">
-                                                        <Heart className="w-4 h-4" />
-                                                        {trip.likes_count || 0}
-                                                    </span>
-                                                    <span className="flex items-center gap-1">
-                                                        <Bookmark className="w-4 h-4" />
-                                                        {trip.favorites_count || 0}
-                                                    </span>
-                                                </div>
-
-                                                <Link
-                                                    href={`/trip/${trip.id}`}
-                                                    className="block w-full text-center text-sm bg-primary-50 text-primary-700 py-2 rounded-lg hover:bg-primary-100 transition-colors"
-                                                >
-                                                    {t.square.viewTrip}
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Popular Tab */}
-                {activeTab === "popular" && (
-                    <div>
-                        {filteredTrips.length === 0 ? (
-                            <div className="bg-white rounded-2xl shadow-sm border p-12 text-center">
-                                <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                                <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                    {t.square.noTrips}
-                                </h3>
-                                <p className="text-gray-600 mb-6">
-                                    {t.square.noTripsDesc}
-                                </p>
-                                <Link
-                                    href="/trip/create"
-                                    className="gradient-primary text-white px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2"
-                                >
-                                    <MapPin className="w-5 h-5" />
-                                    {t.dashboard.createPlan}
-                                </Link>
-                            </div>
-                        ) : (
-                            <>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredTrips.map((trip: any, index: number) => (
-                                        <div
-                                            key={trip.id}
-                                            className="bg-white rounded-2xl shadow-sm border hover:shadow-md transition-shadow overflow-hidden group"
-                                        >
-                                            <div className="p-6">
-                                                <div className="flex items-start justify-between mb-4">
-                                                    <div className="flex-1 min-w-0">
-                                                        <h3 className="text-lg font-semibold text-gray-900 mb-1 truncate">
-                                                            {trip.title}
-                                                        </h3>
-                                                        <p className="text-sm text-gray-500">
-                                                            {trip.destination}
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <div className="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center">
-                                                        <User className="w-3.5 h-3.5 text-primary-600" />
-                                                    </div>
-                                                    <span className="text-sm text-gray-600">
-                                                        {t.square.from} {trip.user_profiles?.name || t.dashboard.user}
-                                                    </span>
-                                                </div>
-
-                                                <div className="space-y-2 mb-4">
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        <Calendar className="w-4 h-4" />
-                                                        <span>
-                                                            {formatDate(trip.start_date)} - {formatDate(trip.end_date)}
-                                                        </span>
-                                                    </div>
-                                                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                                                        <Wallet className="w-4 h-4" />
-                                                        <span>
-                                                            {t.dashboard.budget}：{formatCurrency(trip.budget)}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex items-center gap-4 text-sm mb-4">
-                                                    <button
-                                                        onClick={() => handleLike(trip.id, index)}
-                                                        className={`flex items-center gap-1 transition-colors ${trip.is_liked
-                                                            ? "text-red-500"
-                                                            : "text-gray-500 hover:text-red-500"
-                                                            }`}
-                                                    >
-                                                        <Heart
-                                                            className={`w-4 h-4 ${trip.is_liked ? "fill-current" : ""
-                                                                }`}
-                                                        />
-                                                        <span>{trip.likes_count || 0}</span>
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleFavorite(trip.id, index)}
-                                                        className={`flex items-center gap-1 transition-colors ${trip.is_favorited
-                                                            ? "text-yellow-500"
-                                                            : "text-gray-500 hover:text-yellow-500"
-                                                            }`}
-                                                    >
-                                                        <Bookmark
-                                                            className={`w-4 h-4 ${trip.is_favorited ? "fill-current" : ""
-                                                                }`}
-                                                        />
-                                                        <span>{trip.favorites_count || 0}</span>
-                                                    </button>
-                                                </div>
-
-                                                <Link
-                                                    href={`/trip/${trip.id}`}
-                                                    className="block w-full text-center text-sm bg-primary-50 text-primary-700 py-2 rounded-lg hover:bg-primary-100 transition-colors"
-                                                >
-                                                    {t.square.viewTrip}
-                                                </Link>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                {/* Load More */}
-                                {trips.length < totalCount && (
-                                    <div className="mt-8 text-center">
-                                        <button
-                                            onClick={handleLoadMore}
-                                            disabled={isLoadingMore}
-                                            className="gradient-primary text-white px-8 py-3 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 inline-flex items-center gap-2"
-                                        >
-                                            {isLoadingMore ? (
-                                                <>
-                                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                                    {t.square.loading}
-                                                </>
-                                            ) : (
-                                                t.square.loadMore
-                                            )}
-                                        </button>
+                                            {t.square.viewTrip}
+                                        </Link>
                                     </div>
-                                )}
-                            </>
-                        )}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </main>

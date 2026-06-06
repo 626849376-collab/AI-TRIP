@@ -184,14 +184,14 @@ export default function CreateTripPage() {
                     <div className="flex items-center justify-between h-16">
                         <Link
                             href="/dashboard"
-                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 touch-target"
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            <span>{t.tripCreate.back}</span>
+                            <span className="hidden sm:inline">{t.tripCreate.back}</span>
                         </Link>
                         <div className="flex items-center gap-2">
                             <MapPin className="w-5 h-5 text-primary-600" />
-                            <span className="font-semibold">{t.tripCreate.title}</span>
+                            <span className="font-semibold text-sm sm:text-base">{t.tripCreate.title}</span>
                         </div>
                         <LanguageSwitcher />
                     </div>
@@ -199,11 +199,11 @@ export default function CreateTripPage() {
             </header>
 
             {/* Form */}
-            <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="bg-white rounded-2xl shadow-sm border p-6 sm:p-8">
-                    <form onSubmit={handleSubmit} className="space-y-6">
+            <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+                <div className="bg-white rounded-2xl shadow-sm border p-4 sm:p-6 lg:p-8">
+                    <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
                         {/* Departure & Destination */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     {t.tripCreate.departureCity} <span className="text-red-500">*</span>
@@ -241,7 +241,7 @@ export default function CreateTripPage() {
                         </div>
 
                         {/* Dates */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     {t.tripCreate.startDate} <span className="text-red-500">*</span>
@@ -316,7 +316,7 @@ export default function CreateTripPage() {
                                         key={tag}
                                         type="button"
                                         onClick={() => toggleInterest(tag)}
-                                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${formData.interests.includes(tag)
+                                        className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-target ${formData.interests.includes(tag)
                                             ? "bg-primary-500 text-white shadow-sm"
                                             : "bg-gray-100 text-gray-600 hover:bg-gray-200"
                                             }`}
@@ -335,7 +335,7 @@ export default function CreateTripPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-3">
                                 {t.tripCreate.transportPreference}
                             </label>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                                 {TRANSPORT_OPTIONS.map((option) => (
                                     <button
                                         key={option.value}
@@ -347,7 +347,7 @@ export default function CreateTripPage() {
                                                     option.value,
                                             }))
                                         }
-                                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border text-sm font-medium transition-all ${formData.transportPreference ===
+                                        className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all touch-target ${formData.transportPreference ===
                                             option.value
                                             ? "border-primary-500 bg-primary-50 text-primary-700"
                                             : "border-gray-200 text-gray-600 hover:border-gray-300"
@@ -365,7 +365,7 @@ export default function CreateTripPage() {
                             <label className="block text-sm font-medium text-gray-700 mb-3">
                                 {t.tripCreate.accommodationPreference}
                             </label>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                                 {ACCOMMODATION_OPTIONS.map((option) => (
                                     <button
                                         key={option.value}
@@ -377,7 +377,7 @@ export default function CreateTripPage() {
                                                     option.value,
                                             }))
                                         }
-                                        className={`flex items-center justify-center gap-2 px-4 py-3 rounded-lg border text-sm font-medium transition-all ${formData.accommodationPreference ===
+                                        className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all touch-target ${formData.accommodationPreference ===
                                             option.value
                                             ? "border-primary-500 bg-primary-50 text-primary-700"
                                             : "border-gray-200 text-gray-600 hover:border-gray-300"
@@ -394,7 +394,7 @@ export default function CreateTripPage() {
                         <button
                             type="submit"
                             disabled={isGenerating}
-                            className="w-full gradient-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                            className="w-full gradient-primary text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-target"
                         >
                             {isGenerating ? (
                                 <>

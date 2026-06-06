@@ -121,28 +121,28 @@ export default function TripDetailPage() {
                     <div className="flex items-center justify-between h-16">
                         <Link
                             href="/dashboard"
-                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+                            className="flex items-center gap-2 text-gray-600 hover:text-gray-900 touch-target"
                         >
                             <ArrowLeft className="w-5 h-5" />
-                            <span>{t.trip.back}</span>
+                            <span className="hidden sm:inline">{t.trip.back}</span>
                         </Link>
-                        <div className="flex items-center gap-2">
-                            <MapPin className="w-5 h-5 text-primary-600" />
-                            <span className="font-semibold">
+                        <div className="flex items-center gap-2 min-w-0 flex-1 justify-center">
+                            <MapPin className="w-5 h-5 text-primary-600 flex-shrink-0" />
+                            <span className="font-semibold truncate max-w-[120px] sm:max-w-none">
                                 {tripPlan?.destination}
                             </span>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 sm:gap-2">
                             <button
                                 onClick={handleExportPDF}
-                                className="p-2 text-gray-400 hover:text-primary-600 transition-colors"
+                                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary-600 transition-colors rounded-xl hover:bg-primary-50 icon-button"
                                 title={t.trip.exportPDF}
                             >
                                 <Download className="w-5 h-5" />
                             </button>
                             <button
                                 onClick={handleDelete}
-                                className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 icon-button"
                                 title={t.trip.delete}
                             >
                                 <Trash2 className="w-5 h-5" />
@@ -154,36 +154,36 @@ export default function TripDetailPage() {
             </header>
 
             {/* Trip Info */}
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                <div className="bg-white rounded-2xl shadow-sm border p-6 mb-6">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                <div className="bg-white rounded-2xl shadow-sm border p-4 sm:p-6 mb-4 sm:mb-6">
+                    <h1 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">
                         {tripPlan?.title}
                     </h1>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                         <div className="flex items-center gap-3 text-gray-600">
-                            <Calendar className="w-5 h-5 text-primary-500" />
-                            <div>
-                                <p className="text-sm text-gray-500">{t.trip.date}</p>
-                                <p className="font-medium">
+                            <Calendar className="w-5 h-5 text-primary-500 flex-shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-xs sm:text-sm text-gray-500">{t.trip.date}</p>
+                                <p className="font-medium text-sm sm:text-base truncate">
                                     {formatDate(tripPlan?.start_date)} -{" "}
                                     {formatDate(tripPlan?.end_date)}
                                 </p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 text-gray-600">
-                            <MapPin className="w-5 h-5 text-primary-500" />
-                            <div>
-                                <p className="text-sm text-gray-500">{t.trip.destination}</p>
-                                <p className="font-medium">
+                            <MapPin className="w-5 h-5 text-primary-500 flex-shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-xs sm:text-sm text-gray-500">{t.trip.destination}</p>
+                                <p className="font-medium text-sm sm:text-base truncate">
                                     {tripPlan?.destination}
                                 </p>
                             </div>
                         </div>
                         <div className="flex items-center gap-3 text-gray-600">
-                            <Wallet className="w-5 h-5 text-primary-500" />
-                            <div>
-                                <p className="text-sm text-gray-500">{t.trip.budget}</p>
-                                <p className="font-medium">
+                            <Wallet className="w-5 h-5 text-primary-500 flex-shrink-0" />
+                            <div className="min-w-0">
+                                <p className="text-xs sm:text-sm text-gray-500">{t.trip.budget}</p>
+                                <p className="font-medium text-sm sm:text-base">
                                     {formatCurrency(tripPlan?.budget)}
                                 </p>
                             </div>
@@ -195,7 +195,7 @@ export default function TripDetailPage() {
                 {tripDetails.map((detail: any) => (
                     <div
                         key={detail.id}
-                        className="bg-white rounded-2xl shadow-sm border mb-4 overflow-hidden"
+                        className="bg-white rounded-2xl shadow-sm border mb-3 sm:mb-4 overflow-hidden"
                     >
                         <button
                             onClick={() =>
@@ -205,32 +205,32 @@ export default function TripDetailPage() {
                                         : detail.day_number
                                 )
                             }
-                            className="w-full flex items-center justify-between p-6 hover:bg-gray-50 transition-colors"
+                            className="w-full flex items-center justify-between p-4 sm:p-6 hover:bg-gray-50 transition-colors touch-target"
                         >
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
+                            <div className="flex items-center gap-3 min-w-0">
+                                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
                                     <Sun className="w-5 h-5 text-primary-600" />
                                 </div>
-                                <div className="text-left">
-                                    <h3 className="font-semibold text-gray-900">
+                                <div className="text-left min-w-0">
+                                    <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate">
                                         {t.trip.day.replace("{day}", String(detail.day_number))}
                                     </h3>
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-xs sm:text-sm text-gray-500 truncate">
                                         {formatDate(detail.content?.date)}
                                     </p>
                                 </div>
                             </div>
                             {expandedDay === detail.day_number ? (
-                                <ChevronUp className="w-5 h-5 text-gray-400" />
+                                <ChevronUp className="w-5 h-5 text-gray-400 flex-shrink-0" />
                             ) : (
-                                <ChevronDown className="w-5 h-5 text-gray-400" />
+                                <ChevronDown className="w-5 h-5 text-gray-400 flex-shrink-0" />
                             )}
                         </button>
 
                         {expandedDay === detail.day_number && (
-                            <div className="px-6 pb-6 animate-fade-in">
+                            <div className="px-4 sm:px-6 pb-4 sm:pb-6 animate-fade-in">
                                 {/* Route Map */}
-                                <div className="mb-6">
+                                <div className="mb-4 sm:mb-6">
                                     <RouteMap
                                         activities={detail.content?.activities || []}
                                         destination={tripPlan?.destination || ""}
@@ -239,12 +239,12 @@ export default function TripDetailPage() {
                                 </div>
 
                                 {/* Activities Timeline */}
-                                <div className="space-y-4 mb-6">
+                                <div className="space-y-3 sm:space-y-4 mb-4 sm:mb-6">
                                     {detail.content?.activities?.map(
                                         (activity: any, idx: number) => (
                                             <div
                                                 key={idx}
-                                                className="flex gap-4"
+                                                className="flex gap-3 sm:gap-4"
                                             >
                                                 <div className="flex flex-col items-center">
                                                     <div className="w-3 h-3 rounded-full bg-primary-500 mt-1.5" />
@@ -256,19 +256,19 @@ export default function TripDetailPage() {
                                                             <div className="w-0.5 flex-1 bg-gray-200" />
                                                         )}
                                                 </div>
-                                                <div className="flex-1 bg-gray-50 rounded-lg p-4">
+                                                <div className="flex-1 bg-gray-50 rounded-lg p-3 sm:p-4 min-w-0">
                                                     <div className="flex items-center justify-between mb-2">
-                                                        <span className="text-sm font-medium text-primary-600">
+                                                        <span className="text-xs sm:text-sm font-medium text-primary-600">
                                                             {activity.time}
                                                         </span>
                                                         <span className="text-xs text-gray-400">
                                                             {activity.duration}
                                                         </span>
                                                     </div>
-                                                    <h4 className="font-medium text-gray-900 mb-1">
+                                                    <h4 className="font-medium text-gray-900 mb-1 text-sm sm:text-base">
                                                         {activity.name}
                                                     </h4>
-                                                    <p className="text-sm text-gray-600 mb-2">
+                                                    <p className="text-xs sm:text-sm text-gray-600 mb-2">
                                                         {activity.description}
                                                     </p>
                                                     {activity.location && (
@@ -288,66 +288,66 @@ export default function TripDetailPage() {
                                 </div>
 
                                 {/* Meals */}
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
-                                    <div className="bg-orange-50 rounded-lg p-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-6">
+                                    <div className="bg-orange-50 rounded-lg p-3 sm:p-4">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Coffee className="w-4 h-4 text-orange-500" />
-                                            <span className="text-sm font-medium text-orange-700">
+                                            <Coffee className="w-4 h-4 text-orange-500 flex-shrink-0" />
+                                            <span className="text-xs sm:text-sm font-medium text-orange-700">
                                                 {t.trip.breakfast}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-gray-700">
+                                        <p className="text-xs sm:text-sm text-gray-700">
                                             {detail.content?.meals?.breakfast}
                                         </p>
                                     </div>
-                                    <div className="bg-green-50 rounded-lg p-4">
+                                    <div className="bg-green-50 rounded-lg p-3 sm:p-4">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Utensils className="w-4 h-4 text-green-500" />
-                                            <span className="text-sm font-medium text-green-700">
+                                            <Utensils className="w-4 h-4 text-green-500 flex-shrink-0" />
+                                            <span className="text-xs sm:text-sm font-medium text-green-700">
                                                 {t.trip.lunch}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-gray-700">
+                                        <p className="text-xs sm:text-sm text-gray-700">
                                             {detail.content?.meals?.lunch}
                                         </p>
                                     </div>
-                                    <div className="bg-purple-50 rounded-lg p-4">
+                                    <div className="bg-purple-50 rounded-lg p-3 sm:p-4">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Moon className="w-4 h-4 text-purple-500" />
-                                            <span className="text-sm font-medium text-purple-700">
+                                            <Moon className="w-4 h-4 text-purple-500 flex-shrink-0" />
+                                            <span className="text-xs sm:text-sm font-medium text-purple-700">
                                                 {t.trip.dinner}
                                             </span>
                                         </div>
-                                        <p className="text-sm text-gray-700">
+                                        <p className="text-xs sm:text-sm text-gray-700">
                                             {detail.content?.meals?.dinner}
                                         </p>
                                     </div>
                                 </div>
 
                                 {/* Hotel */}
-                                <div className="bg-blue-50 rounded-lg p-4 mb-6">
+                                <div className="bg-blue-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
                                     <div className="flex items-center gap-2 mb-2">
-                                        <Hotel className="w-4 h-4 text-blue-500" />
-                                        <span className="text-sm font-medium text-blue-700">
+                                        <Hotel className="w-4 h-4 text-blue-500 flex-shrink-0" />
+                                        <span className="text-xs sm:text-sm font-medium text-blue-700">
                                             {t.trip.hotel}
                                         </span>
                                     </div>
-                                    <p className="text-sm text-gray-700">
+                                    <p className="text-xs sm:text-sm text-gray-700">
                                         {detail.content?.hotel}
                                     </p>
                                 </div>
 
                                 {/* Day Budget */}
-                                <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                                    <h4 className="text-sm font-medium text-gray-700 mb-3">
+                                <div className="bg-gray-50 rounded-lg p-3 sm:p-4 mb-4 sm:mb-6">
+                                    <h4 className="text-xs sm:text-sm font-medium text-gray-700 mb-3">
                                         {t.trip.dayBudget}
                                     </h4>
-                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                                         <div>
                                             <p className="text-xs text-gray-500">
                                                 {t.trip.transportation}
                                             </p>
-                                            <p className="font-medium text-gray-900">
+                                            <p className="font-medium text-gray-900 text-sm">
                                                 {formatCurrency(
                                                     detail.content?.budget
                                                         ?.transportation
@@ -358,7 +358,7 @@ export default function TripDetailPage() {
                                             <p className="text-xs text-gray-500">
                                                 {t.trip.meals}
                                             </p>
-                                            <p className="font-medium text-gray-900">
+                                            <p className="font-medium text-gray-900 text-sm">
                                                 {formatCurrency(
                                                     detail.content?.budget?.meals
                                                 )}
@@ -368,7 +368,7 @@ export default function TripDetailPage() {
                                             <p className="text-xs text-gray-500">
                                                 {t.trip.tickets}
                                             </p>
-                                            <p className="font-medium text-gray-900">
+                                            <p className="font-medium text-gray-900 text-sm">
                                                 {formatCurrency(
                                                     detail.content?.budget?.tickets
                                                 )}
@@ -378,7 +378,7 @@ export default function TripDetailPage() {
                                             <p className="text-xs text-gray-500">
                                                 {t.trip.shopping}
                                             </p>
-                                            <p className="font-medium text-gray-900">
+                                            <p className="font-medium text-gray-900 text-sm">
                                                 {formatCurrency(
                                                     detail.content?.budget
                                                         ?.shopping
@@ -390,10 +390,10 @@ export default function TripDetailPage() {
 
                                 {/* Tips */}
                                 {detail.content?.tips?.length > 0 && (
-                                    <div className="bg-yellow-50 rounded-lg p-4">
+                                    <div className="bg-yellow-50 rounded-lg p-3 sm:p-4">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <Lightbulb className="w-4 h-4 text-yellow-500" />
-                                            <span className="text-sm font-medium text-yellow-700">
+                                            <Lightbulb className="w-4 h-4 text-yellow-500 flex-shrink-0" />
+                                            <span className="text-xs sm:text-sm font-medium text-yellow-700">
                                                 {t.trip.tips}
                                             </span>
                                         </div>
@@ -402,7 +402,7 @@ export default function TripDetailPage() {
                                                 (tip: string, idx: number) => (
                                                     <li
                                                         key={idx}
-                                                        className="text-sm text-gray-700 flex items-start gap-2"
+                                                        className="text-xs sm:text-sm text-gray-700 flex items-start gap-2"
                                                     >
                                                         <span className="text-yellow-500 mt-0.5">
                                                             •
