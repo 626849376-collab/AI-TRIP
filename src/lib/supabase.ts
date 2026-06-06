@@ -366,14 +366,13 @@ export async function toggleLike(tripId: string, userId: string): Promise<{ isLi
         if (error) throw error;
     }
 
-    // Get updated likes count from trip_plans (updated by database trigger)
-    const { data: trip } = await supabase
-        .from("trip_plans")
-        .select("likes_count")
-        .eq("id", tripId)
-        .single();
+    // Get updated likes count from trip_likes table (RLS allows everyone to SELECT)
+    const { count } = await supabase
+        .from("trip_likes")
+        .select("*", { count: "exact", head: true })
+        .eq("trip_id", tripId);
 
-    return { isLiked: !existing, likesCount: trip?.likes_count || 0 };
+    return { isLiked: !existing, likesCount: count || 0 };
 }
 
 export async function checkIfLiked(tripId: string, userId: string): Promise<boolean> {
@@ -418,14 +417,13 @@ export async function toggleFavorite(tripId: string, userId: string): Promise<{ 
         if (error) throw error;
     }
 
-    // Get updated favorites count from trip_plans (updated by database trigger)
-    const { data: trip } = await supabase
-        .from("trip_plans")
-        .select("favorites_count")
-        .eq("id", tripId)
-        .single();
+    // Get updated favorites count from trip_favorites table (RLS allows everyone to SELECT)
+    const { count } = await supabase
+        .from("trip_favorites")
+        .select("*", { count: "exact", head: true })
+        .eq("trip_id", tripId);
 
-    return { isFavorited: !existing, favoritesCount: trip?.favorites_count || 0 };
+    return { isFavorited: !existing, favoritesCount: count || 0 };
 }
 
 export async function checkIfFavorited(tripId: string, userId: string): Promise<boolean> {
