@@ -39,6 +39,11 @@ export default function ShareModal({
     const generateShareLink = async () => {
         setIsGenerating(true);
         try {
+            // First make the trip public if it's not already
+            if (!isPublic) {
+                const newVisibility = await toggleTripVisibility(tripId);
+                onVisibilityChange(newVisibility);
+            }
             // Generate a unique share link
             const baseUrl = window.location.origin;
             const link = `${baseUrl}/trip/${tripId}`;
@@ -68,10 +73,10 @@ export default function ShareModal({
         try {
             const newVisibility = await toggleTripVisibility(tripId);
             onVisibilityChange(newVisibility);
-            toast.success(t.share.privacyUpdated);
+            toast.success(newVisibility ? "已发布到旅行广场" : "已设为私密");
         } catch (error) {
             console.error("Error toggling visibility:", error);
-            toast.error(t.share.privacyUpdated);
+            toast.error("操作失败，请检查网络连接");
         } finally {
             setIsTogglingVisibility(false);
         }
@@ -145,7 +150,7 @@ export default function ShareModal({
                                     <Lock className="w-5 h-5 text-gray-400" />
                                 )}
                                 <span className="text-sm font-medium text-gray-700">
-                                    {isPublic ? t.share.makePrivate : t.share.makePublic}
+                                    {isPublic ? "已发布到旅行广场" : "未发布到旅行广场"}
                                 </span>
                             </div>
                             <button
@@ -162,8 +167,8 @@ export default function ShareModal({
                         </div>
                         <p className="text-xs text-gray-500">
                             {isPublic
-                                ? t.share.makePrivate
-                                : t.share.makePublic}
+                                ? "你的行程已发布到旅行广场，其他用户可以查看"
+                                : "开启后，你的行程将出现在旅行广场中"}
                         </p>
                     </div>
                 </div>

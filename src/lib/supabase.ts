@@ -157,27 +157,23 @@ export async function createTripPlan(trip: {
         .maybeSingle();
 
     if (!existingProfile) {
-        // Create profile if it doesn't exist
+        // Create profile if it doesn't exist - try with user email from auth
+        const { data: { user } } = await supabase.auth.getUser();
+        const email = user?.email || trip.user_id + "@temp.com";
+        const name = user?.user_metadata?.name || "User";
+
         const { error: profileError } = await supabase
             .from("user_profiles")
-            .insert({
+            .upsert({
                 id: trip.user_id,
-                email: trip.user_id + "@temp.com",
-                name: "User",
+                email: email,
+                name: name,
                 created_at: new Date().toISOString(),
-            });
+            }, { onConflict: "id" });
 
         if (profileError) {
-            // If we can't create the profile, try to get the user email from auth
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user?.email) {
-                await supabase.from("user_profiles").upsert({
-                    id: trip.user_id,
-                    email: user.email,
-                    name: user.user_metadata?.name || "User",
-                    created_at: new Date().toISOString(),
-                });
-            }
+            console.error("Failed to create user profile:", profileError);
+            // Continue anyway - the trip_plans insert might still work
         }
     }
 

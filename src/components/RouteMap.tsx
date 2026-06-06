@@ -62,25 +62,17 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
 
         if (!mapContainerRef.current) return;
 
-        const baseUrl = "https://www.openstreetmap.org/export/embed.html";
         const centerLat = destCoords.lat;
         const centerLng = destCoords.lng;
 
         const padding = 0.05;
         const bbox = `${centerLng - padding},${centerLat - padding},${centerLng + padding},${centerLat + padding}`;
 
-        let markerParams = "";
-        if (activityCoords.length > 0) {
-            markerParams = activityCoords
-                .map((coord, i) => `&marker=${i + 1}|${coord.lat},${coord.lng}`)
-                .join("");
-        } else {
-            markerParams = `&marker=${destination}|${destCoords.lat},${destCoords.lng}`;
-        }
-
-        const url = `${baseUrl}?bbox=${bbox}&layer=mapnik${markerParams}`;
+        // Use OpenStreetMap embed with proper marker format
+        // The embed URL supports marker parameter: marker=lat,lng
+        const url = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${centerLat},${centerLng}`;
         setMapUrl(url);
-    }, [destCoords.lat, destCoords.lng, activityCoords.length, destination]);
+    }, [destCoords.lat, destCoords.lng, destination]);
 
     // Open in full map view
     const openInMaps = useCallback(() => {
