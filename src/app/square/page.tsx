@@ -45,14 +45,21 @@ export default function SquarePage() {
     useEffect(() => {
         const init = async () => {
             try {
+                console.log("SquarePage init started");
                 const currentUser = await getCurrentUser();
+                console.log("Current user:", currentUser?.id);
                 if (!currentUser) { router.push("/auth/login"); return; }
                 setUser(currentUser);
                 const userProfile = await getProfile(currentUser.id);
+                console.log("User profile:", userProfile);
                 setProfile(userProfile);
                 await loadTrips();
             } catch (error) {
-                console.error(error);
+                console.error("SquarePage init error:", error);
+                if (error instanceof Error) {
+                    console.error("Error message:", error.message);
+                    console.error("Error stack:", error.stack);
+                }
                 toast.error("加载旅行广场失败");
             } finally {
                 setIsLoading(false);
@@ -63,10 +70,16 @@ export default function SquarePage() {
 
     const loadTrips = async () => {
         try {
+            console.log("Loading trips...");
             const result = await getPublicTrips();
+            console.log("Trips loaded:", result);
             setTrips(result.data || []);
         } catch (error) {
             console.error("Error loading trips:", error);
+            if (error instanceof Error) {
+                console.error("Error message:", error.message);
+                console.error("Error stack:", error.stack);
+            }
             toast.error("加载行程列表失败");
         }
     };
