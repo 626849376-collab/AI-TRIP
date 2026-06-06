@@ -16,7 +16,9 @@ import {
     MapPin, ArrowLeft, Loader2, Heart, Bookmark, Clock, Flame, Star,
     Search, Grid3X3, List, Globe, Menu, X, User, LogOut, RefreshCw,
     Sparkles, Plus, Calendar, Wallet, Plane, Train, Bus, Car, ArrowRight,
-    Building2, Home, Hotel, Bed, Check,
+    Building2, Home, Hotel, Bed, Check, Leaf, Mountain, Sun, Compass,
+    ChevronDown, Filter, Share2, Eye, MessageCircle, TrendingUp,
+    Award, Zap, Shield, Users,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate } from "@/lib/utils";
@@ -185,7 +187,7 @@ export default function SquarePage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+            <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                     <SkeletonLoader type="card" count={6} />
                 </div>
@@ -210,18 +212,20 @@ export default function SquarePage() {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
+        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
             {/* 创建旅行计划模态框 */}
             {showCreateModal && (
                 <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-10 px-4">
-                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
+                    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
                     <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto z-10">
-                        <div className="sticky top-0 bg-white border-b px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-2xl">
+                        <div className="sticky top-0 bg-white border-b border-emerald-100 px-4 sm:px-6 py-4 flex items-center justify-between rounded-t-2xl">
                             <div className="flex items-center gap-2">
-                                <Sparkles className="w-5 h-5 text-indigo-600" />
+                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
+                                    <Sparkles className="w-4 h-4 text-white" />
+                                </div>
                                 <h2 className="text-lg font-semibold text-gray-900">{t.tripCreate.title}</h2>
                             </div>
-                            <button onClick={() => setShowCreateModal(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-gray-100 transition-colors icon-button">
+                            <button onClick={() => setShowCreateModal(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-emerald-50 transition-colors icon-button">
                                 <X className="w-5 h-5 text-gray-500" />
                             </button>
                         </div>
@@ -229,42 +233,42 @@ export default function SquarePage() {
                             <form onSubmit={handleCreateTrip} className="space-y-5 sm:space-y-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.departureCity} <span className="text-red-500">*</span></label>
-                                        <input type="text" value={formData.departureCity} onChange={(e) => setFormData((prev) => ({ ...prev, departureCity: e.target.value }))} placeholder={t.tripCreate.placeholderDeparture} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.departureCity} <span className="text-emerald-500">*</span></label>
+                                        <input type="text" value={formData.departureCity} onChange={(e) => setFormData((prev) => ({ ...prev, departureCity: e.target.value }))} placeholder={t.tripCreate.placeholderDeparture} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.destination} <span className="text-red-500">*</span></label>
-                                        <input type="text" value={formData.destination} onChange={(e) => setFormData((prev) => ({ ...prev, destination: e.target.value }))} placeholder={t.tripCreate.placeholderDestination} className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.destination} <span className="text-emerald-500">*</span></label>
+                                        <input type="text" value={formData.destination} onChange={(e) => setFormData((prev) => ({ ...prev, destination: e.target.value }))} placeholder={t.tripCreate.placeholderDestination} className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
                                     </div>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.startDate} <span className="text-red-500">*</span></label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.startDate} <span className="text-emerald-500">*</span></label>
                                         <div className="relative">
-                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                            <input type="date" value={formData.startDate} onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400" />
+                                            <input type="date" value={formData.startDate} onChange={(e) => setFormData((prev) => ({ ...prev, startDate: e.target.value }))} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.endDate} <span className="text-red-500">*</span></label>
+                                        <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.endDate} <span className="text-emerald-500">*</span></label>
                                         <div className="relative">
-                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                            <input type="date" value={formData.endDate} onChange={(e) => setFormData((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                                            <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400" />
+                                            <input type="date" value={formData.endDate} onChange={(e) => setFormData((prev) => ({ ...prev, endDate: e.target.value }))} className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
                                         </div>
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.budget} <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">{t.tripCreate.budget} <span className="text-emerald-500">*</span></label>
                                     <div className="relative">
-                                        <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                        <input type="number" value={formData.budget} onChange={(e) => setFormData((prev) => ({ ...prev, budget: e.target.value }))} placeholder={t.tripCreate.placeholderBudget} min="0" className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none" />
+                                        <Wallet className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400" />
+                                        <input type="number" value={formData.budget} onChange={(e) => setFormData((prev) => ({ ...prev, budget: e.target.value }))} placeholder={t.tripCreate.placeholderBudget} min="0" className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all" />
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-3">{t.tripCreate.interests} <span className="text-red-500">*</span></label>
+                                    <label className="block text-sm font-medium text-gray-700 mb-3">{t.tripCreate.interests} <span className="text-emerald-500">*</span></label>
                                     <div className="flex flex-wrap gap-2">
                                         {INTEREST_TAGS.map((tag) => (
-                                            <button key={tag} type="button" onClick={() => toggleInterest(tag)} className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-target ${formData.interests.includes(tag) ? "bg-indigo-500 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}>
+                                            <button key={tag} type="button" onClick={() => toggleInterest(tag)} className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-target ${formData.interests.includes(tag) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-200" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}>
                                                 {formData.interests.includes(tag) && <Check className="w-3 h-3 inline mr-1" />}{tag}
                                             </button>
                                         ))}
@@ -274,7 +278,7 @@ export default function SquarePage() {
                                     <label className="block text-sm font-medium text-gray-700 mb-3">{t.tripCreate.transportPreference}</label>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                                         {TRANSPORT_OPTIONS.map((option) => (
-                                            <button key={option.value} type="button" onClick={() => setFormData((prev) => ({ ...prev, transportPreference: option.value }))} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all touch-target ${formData.transportPreference === option.value ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                                            <button key={option.value} type="button" onClick={() => setFormData((prev) => ({ ...prev, transportPreference: option.value }))} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all touch-target ${formData.transportPreference === option.value ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/50"}`}>
                                                 {transportIcons[option.value]}{option.label}
                                             </button>
                                         ))}
@@ -284,13 +288,13 @@ export default function SquarePage() {
                                     <label className="block text-sm font-medium text-gray-700 mb-3">{t.tripCreate.accommodationPreference}</label>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                                         {ACCOMMODATION_OPTIONS.map((option) => (
-                                            <button key={option.value} type="button" onClick={() => setFormData((prev) => ({ ...prev, accommodationPreference: option.value }))} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all touch-target ${formData.accommodationPreference === option.value ? "border-indigo-500 bg-indigo-50 text-indigo-700" : "border-gray-200 text-gray-600 hover:border-gray-300"}`}>
+                                            <button key={option.value} type="button" onClick={() => setFormData((prev) => ({ ...prev, accommodationPreference: option.value }))} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all touch-target ${formData.accommodationPreference === option.value ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/50"}`}>
                                                 {accommodationIcons[option.value]}{option.label}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                                <button type="submit" disabled={isGenerating} className="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-3 rounded-lg font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-target">
+                                <button type="submit" disabled={isGenerating} className="w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-target">
                                     {isGenerating ? (<><Loader2 className="w-5 h-5 animate-spin" />{t.tripCreate.generating}</>) : (<><Sparkles className="w-5 h-5" />{t.tripCreate.generate}</>)}
                                 </button>
                             </form>
@@ -302,51 +306,59 @@ export default function SquarePage() {
             <ConfirmDialog isOpen={showSignOutConfirm} onClose={() => setShowSignOutConfirm(false)} onConfirm={handleSignOut} title="确认退出登录" message="退出登录后需要重新登录才能使用所有功能。" confirmText="确认退出" cancelText="取消" variant="warning" />
 
             {/* 导航栏 */}
-            <nav className="bg-white/80 backdrop-blur-xl border-b sticky top-0 z-40">
+            <nav className="bg-white/80 backdrop-blur-xl border-b border-emerald-100/50 sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <Link href="/dashboard" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 touch-target">
-                            <ArrowLeft className="w-5 h-5" /><span className="hidden sm:inline">{t.trip.back}</span>
+                        <Link href="/dashboard" className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-colors touch-target">
+                            <ArrowLeft className="w-5 h-5" /><span className="hidden sm:inline font-medium">{t.trip.back}</span>
                         </Link>
                         <div className="flex items-center gap-2">
-                            <Globe className="w-5 h-5 text-indigo-600" />
-                            <span className="font-semibold text-sm sm:text-base bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">{t.square.title}</span>
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center shadow-sm">
+                                <Compass className="w-4 h-4 text-white" />
+                            </div>
+                            <span className="font-bold text-lg bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">{t.square.title}</span>
                         </div>
-                        <div className="hidden md:flex items-center gap-4">
-                            <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-lg font-medium hover:opacity-90 transition-opacity touch-target shadow-sm">
+                        <div className="hidden md:flex items-center gap-3">
+                            <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all touch-target shadow-sm">
                                 <Plus className="w-4 h-4" /><span className="text-sm">{t.dashboard.createNew}</span>
                             </button>
-                            <button onClick={handleRefresh} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 rounded-xl hover:bg-gray-50 transition-colors touch-target" title="刷新">
+                            <button onClick={handleRefresh} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors touch-target" title="刷新">
                                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} /><span className="text-sm">刷新</span>
                             </button>
                             <LanguageSwitcher />
-                            <Link href="/profile" className="flex items-center gap-2 text-gray-600 hover:text-gray-900 touch-target">
-                                <User className="w-5 h-5" /><span>{profile?.name || t.dashboard.user}</span>
+                            <Link href="/profile" className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors touch-target">
+                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
+                                    <User className="w-3.5 h-3.5 text-white" />
+                                </div>
+                                <span className="text-sm font-medium">{profile?.name || t.dashboard.user}</span>
                             </Link>
-                            <button onClick={() => setShowSignOutConfirm(true)} className="flex items-center gap-2 text-gray-600 hover:text-red-600 transition-colors touch-target">
-                                <LogOut className="w-5 h-5" /><span>{t.dashboard.signOut}</span>
+                            <button onClick={() => setShowSignOutConfirm(true)} className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-red-500 rounded-xl hover:bg-red-50 transition-colors touch-target">
+                                <LogOut className="w-4 h-4" /><span className="text-sm">{t.dashboard.signOut}</span>
                             </button>
                         </div>
                         <div className="flex items-center gap-2 md:hidden">
-                            <button onClick={() => setShowCreateModal(true)} className="w-10 h-10 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center text-white shadow-sm icon-button" title={t.dashboard.createNew}>
+                            <button onClick={() => setShowCreateModal(true)} className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white shadow-sm icon-button" title={t.dashboard.createNew}>
                                 <Plus className="w-5 h-5" />
                             </button>
-                            <button onClick={handleRefresh} disabled={isRefreshing} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors icon-button" title="刷新">
-                                <RefreshCw className={`w-4 h-4 text-gray-600 ${isRefreshing ? "animate-spin" : ""}`} />
+                            <button onClick={handleRefresh} disabled={isRefreshing} className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 transition-colors icon-button" title="刷新">
+                                <RefreshCw className={`w-4 h-4 text-emerald-600 ${isRefreshing ? "animate-spin" : ""}`} />
                             </button>
                             <LanguageSwitcher />
-                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors icon-button">
-                                {isMenuOpen ? <X className="w-5 h-5 text-gray-600" /> : <Menu className="w-5 h-5 text-gray-600" />}
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 transition-colors icon-button">
+                                {isMenuOpen ? <X className="w-5 h-5 text-emerald-600" /> : <Menu className="w-5 h-5 text-emerald-600" />}
                             </button>
                         </div>
                     </div>
                     {isMenuOpen && (
-                        <div className="md:hidden py-4 border-t animate-fade-in">
+                        <div className="md:hidden py-4 border-t border-emerald-100 animate-fade-in">
                             <div className="flex flex-col gap-2">
-                                <Link href="/profile" className="flex items-center gap-2 text-gray-600 py-3 px-2 rounded-xl hover:bg-gray-50 transition-colors touch-target" onClick={() => setIsMenuOpen(false)}>
-                                    <User className="w-5 h-5" /><span>{profile?.name || t.dashboard.user}</span>
+                                <Link href="/profile" className="flex items-center gap-2 text-emerald-600 py-3 px-2 rounded-xl hover:bg-emerald-50 transition-colors touch-target" onClick={() => setIsMenuOpen(false)}>
+                                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
+                                        <User className="w-3.5 h-3.5 text-white" />
+                                    </div>
+                                    <span className="font-medium">{profile?.name || t.dashboard.user}</span>
                                 </Link>
-                                <button onClick={() => { setIsMenuOpen(false); setShowSignOutConfirm(true); }} className="flex items-center gap-2 text-red-600 py-3 px-2 rounded-xl hover:bg-red-50 transition-colors touch-target">
+                                <button onClick={() => { setIsMenuOpen(false); setShowSignOutConfirm(true); }} className="flex items-center gap-2 text-red-500 py-3 px-2 rounded-xl hover:bg-red-50 transition-colors touch-target">
                                     <LogOut className="w-5 h-5" /><span>{t.dashboard.signOut}</span>
                                 </button>
                             </div>
@@ -357,47 +369,96 @@ export default function SquarePage() {
 
             {/* 主内容 */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 page-enter">
-                {/* 横幅 */}
-                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-6 sm:p-8 mb-4 sm:mb-6">
-                    <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2 blur-2xl" />
+                {/* 横幅 - 绿色主题 */}
+                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-500 via-green-500 to-emerald-600 p-6 sm:p-8 mb-4 sm:mb-6 shadow-lg shadow-emerald-200/30">
+                    {/* 装饰元素 */}
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-300/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl" />
+                    <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-yellow-300/10 rounded-full blur-2xl" />
+
+                    {/* 叶子装饰 */}
+                    <div className="absolute top-4 right-8 opacity-10">
+                        <Leaf className="w-16 h-16 text-white" />
+                    </div>
+                    <div className="absolute bottom-4 left-12 opacity-10 rotate-45">
+                        <Leaf className="w-12 h-12 text-white" />
+                    </div>
+
                     <div className="relative z-10">
                         <div className="flex items-center gap-3 mb-3">
-                            <Sparkles className="w-5 h-5 text-yellow-300" />
-                            <span className="text-white/80 text-sm font-medium">{t.square.subtitle}</span>
+                            <div className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">
+                                <span className="text-white/90 text-xs font-medium flex items-center gap-1">
+                                    <Sun className="w-3.5 h-3.5" /> 探索世界
+                                </span>
+                            </div>
                         </div>
-                        <h1 className="text-xl sm:text-2xl font-bold text-white mb-2">{t.square.title}</h1>
-                        <p className="text-white/70 text-sm sm:text-base max-w-lg">发现来自全球旅行者的精彩行程，获取灵感，规划你的下一次冒险！</p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
+                            {t.square.title}
+                        </h1>
+                        <p className="text-white/70 text-sm sm:text-base max-w-lg leading-relaxed">
+                            发现来自全球旅行者的精彩行程，获取灵感，规划你的下一次冒险！
+                        </p>
+                        <div className="flex items-center gap-4 mt-4">
+                            <div className="flex items-center gap-1.5 text-white/60 text-xs">
+                                <Users className="w-3.5 h-3.5" />
+                                <span>{trips.length} 个行程</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-white/60 text-xs">
+                                <TrendingUp className="w-3.5 h-3.5" />
+                                <span>实时更新</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 {/* 搜索和筛选 */}
                 <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
-                    <div className="relative">
-                        <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                        <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t.square.search} className="w-full pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-white rounded-xl border border-gray-200 focus:border-indigo-300 focus:ring-2 focus:ring-indigo-100 outline-none transition-all text-sm sm:text-base" />
+                    <div className="relative group">
+                        <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 group-focus-within:text-emerald-500 transition-colors" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder={t.square.search}
+                            className="w-full pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-white rounded-xl border border-emerald-100 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100 outline-none transition-all text-sm sm:text-base shadow-sm"
+                        />
                         {searchQuery && (
-                            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 icon-button">
+                            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-500 transition-colors icon-button">
                                 <X className="w-4 h-4" />
                             </button>
                         )}
                     </div>
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                        <div className="flex items-center gap-1 sm:gap-2 bg-white rounded-xl p-1 border w-full sm:w-auto overflow-x-auto">
+                        <div className="flex items-center gap-1 sm:gap-2 bg-white rounded-xl p-1.5 border border-emerald-100 w-full sm:w-auto overflow-x-auto shadow-sm">
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
                                 return (
-                                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap touch-target ${activeTab === tab.id ? "bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-sm" : "text-gray-600 hover:text-gray-900 hover:bg-gray-50"}`}>
+                                    <button
+                                        key={tab.id}
+                                        onClick={() => setActiveTab(tab.id)}
+                                        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap touch-target ${activeTab === tab.id
+                                            ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-sm shadow-emerald-200"
+                                            : "text-gray-500 hover:text-emerald-600 hover:bg-emerald-50"
+                                            }`}
+                                    >
                                         <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{tab.label}
                                     </button>
                                 );
                             })}
                         </div>
-                        <div className="flex items-center gap-1 bg-white rounded-xl p-1 border">
-                            <button onClick={() => setViewMode("grid")} className={`p-2 rounded-lg transition-colors icon-button ${viewMode === "grid" ? "bg-indigo-50 text-indigo-600" : "text-gray-400 hover:text-gray-600"}`} title="网格视图">
+                        <div className="flex items-center gap-1 bg-white rounded-xl p-1.5 border border-emerald-100 shadow-sm">
+                            <button
+                                onClick={() => setViewMode("grid")}
+                                className={`p-2 rounded-lg transition-colors icon-button ${viewMode === "grid" ? "bg-emerald-100 text-emerald-600" : "text-gray-400 hover:text-emerald-500 hover:bg-emerald-50"}`}
+                                title="网格视图"
+                            >
                                 <Grid3X3 className="w-4 h-4" />
                             </button>
-                            <button onClick={() => setViewMode("list")} className={`p-2 rounded-lg transition-colors icon-button ${viewMode === "list" ? "bg-indigo-50 text-indigo-600" : "text-gray-400 hover:text-gray-600"}`} title="列表视图">
+                            <button
+                                onClick={() => setViewMode("list")}
+                                className={`p-2 rounded-lg transition-colors icon-button ${viewMode === "list" ? "bg-emerald-100 text-emerald-600" : "text-gray-400 hover:text-emerald-500 hover:bg-emerald-50"}`}
+                                title="列表视图"
+                            >
                                 <List className="w-4 h-4" />
                             </button>
                         </div>
@@ -406,50 +467,105 @@ export default function SquarePage() {
 
                 {/* 行程卡片 */}
                 {sortedTrips.length === 0 ? (
-                    <EmptyState icon="globe" title={t.square.noTrips} description={t.square.noTripsDesc}
-                        action={{ label: "创建旅行计划", onClick: () => setShowCreateModal(true) }}
-                        secondaryAction={{ label: "刷新试试", onClick: handleRefresh }}
-                    />
+                    <div className="flex flex-col items-center justify-center py-16 sm:py-20">
+                        <div className="w-20 h-20 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
+                            <Compass className="w-10 h-10 text-emerald-400" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-900 mb-2">{t.square.noTrips}</h3>
+                        <p className="text-sm text-gray-500 mb-6 text-center max-w-sm">{t.square.noTripsDesc}</p>
+                        <div className="flex items-center gap-3">
+                            <button onClick={() => setShowCreateModal(true)} className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all touch-target text-sm">
+                                创建旅行计划
+                            </button>
+                            <button onClick={handleRefresh} className="px-5 py-2.5 border border-emerald-200 text-emerald-600 rounded-lg font-medium hover:bg-emerald-50 transition-all touch-target text-sm">
+                                刷新试试
+                            </button>
+                        </div>
+                    </div>
                 ) : (
                     <>
                         <div className="flex items-center justify-between mb-3 sm:mb-4">
-                            <p className="text-xs sm:text-sm text-gray-500">找到 {sortedTrips.length} 个行程{searchQuery && `（搜索"${searchQuery}"）`}</p>
+                            <p className="text-xs sm:text-sm text-gray-500">
+                                找到 <span className="text-emerald-600 font-medium">{sortedTrips.length}</span> 个行程
+                                {searchQuery && <span>（搜索"<span className="text-emerald-600">{searchQuery}</span>"）</span>}
+                            </p>
                         </div>
-                        <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 stagger-enter" : "space-y-3 sm:space-y-4 stagger-enter"}>
-                            {sortedTrips.map((trip) => (
-                                <div key={trip.id} className={`group bg-white rounded-2xl border hover:shadow-lg hover:border-indigo-200 transition-all duration-300 overflow-hidden ${viewMode === "list" ? "flex flex-col sm:flex-row" : ""}`}>
-                                    <div className={`bg-gradient-to-r from-indigo-400 to-purple-500 ${viewMode === "list" ? "w-full sm:w-2 h-2 sm:h-auto" : "h-2"}`} />
-                                    <div className={`p-4 sm:p-6 ${viewMode === "list" ? "flex-1" : ""}`}>
+                        <div className={viewMode === "grid"
+                            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 stagger-enter"
+                            : "space-y-3 sm:space-y-4 stagger-enter"
+                        }>
+                            {sortedTrips.map((trip, index) => (
+                                <div
+                                    key={trip.id}
+                                    className={`group bg-white rounded-2xl border border-emerald-100/80 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100/30 transition-all duration-300 overflow-hidden ${viewMode === "list" ? "flex flex-col sm:flex-row" : ""
+                                        }`}
+                                >
+                                    {/* 顶部渐变条 */}
+                                    <div className={`bg-gradient-to-r from-emerald-400 to-green-500 ${viewMode === "list" ? "w-full sm:w-2 h-2 sm:h-auto" : "h-2"
+                                        }`} />
+
+                                    <div className={`p-4 sm:p-5 ${viewMode === "list" ? "flex-1" : ""}`}>
+                                        {/* 用户信息和标题 */}
                                         <div className="flex items-start justify-between mb-3">
                                             <div className="min-w-0 flex-1">
-                                                <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-indigo-600 transition-colors">{trip.title}</h3>
-                                                <p className="text-xs sm:text-sm text-gray-500 truncate flex items-center gap-1"><MapPin className="w-3 h-3" />{trip.destination}</p>
+                                                <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-emerald-600 transition-colors">
+                                                    {trip.title}
+                                                </h3>
                                             </div>
-                                            <div className="flex items-center gap-1 ml-2 flex-shrink-0">
-                                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-400 to-purple-500 flex items-center justify-center"><User className="w-3 h-3 text-white" /></div>
-                                                <span className="text-xs text-gray-400 truncate max-w-[80px]">{trip.user_profiles?.name || t.square.from}</span>
+                                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
+                                                    <User className="w-3 h-3 text-white" />
+                                                </div>
+                                                <span className="text-xs text-gray-500 truncate max-w-[80px]">
+                                                    {trip.user_profiles?.name || "匿名用户"}
+                                                </span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3 text-xs sm:text-sm text-gray-500 mb-3">
-                                            <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5" />{trip.destination}</span>
-                                            <span>•</span>
-                                            <span>{formatDate(trip.start_date)}</span>
+
+                                        {/* 目的地和日期 */}
+                                        <div className="flex items-center gap-2 mb-3">
+                                            <MapPin className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
+                                            <span className="text-xs text-gray-600 truncate">{trip.destination}</span>
+                                            <span className="text-gray-300">·</span>
+                                            <Clock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+                                            <span className="text-xs text-gray-500">{formatDate(trip.created_at)}</span>
                                         </div>
-                                        <p className="text-xs sm:text-sm text-gray-600 line-clamp-2 mb-4">{trip.description || t.square.subtitle}</p>
-                                        <div className="flex items-center justify-between">
-                                            <div className="flex items-center gap-1 sm:gap-2">
-                                                <button onClick={() => handleLike(trip.id)} className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm transition-colors touch-target ${trip.is_liked ? "text-red-500 bg-red-50" : "text-gray-400 hover:text-red-500 hover:bg-red-50"}`} title={trip.is_liked ? "取消点赞" : "点赞"}>
-                                                    <Heart className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${trip.is_liked ? "fill-current" : ""}`} />
-                                                    <span>{trip.likes_count || 0}</span>
-                                                </button>
-                                                <button onClick={() => handleFavorite(trip.id)} className={`flex items-center gap-1 px-2 sm:px-3 py-1.5 rounded-lg text-xs sm:text-sm transition-colors touch-target ${trip.is_favorited ? "text-yellow-500 bg-yellow-50" : "text-gray-400 hover:text-yellow-500 hover:bg-yellow-50"}`} title={trip.is_favorited ? "取消收藏" : "收藏"}>
-                                                    <Bookmark className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${trip.is_favorited ? "fill-current" : ""}`} />
-                                                    <span>{trip.favorites_count || 0}</span>
-                                                </button>
+
+                                        {/* 预算和天数 */}
+                                        <div className="flex items-center gap-3 mb-3">
+                                            <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-md">
+                                                <Wallet className="w-3 h-3 text-emerald-500" />
+                                                <span className="text-xs font-medium text-emerald-700">¥{trip.budget}</span>
                                             </div>
-                                            <Link href={`/trip/${trip.id}`} className="flex items-center gap-1 text-indigo-600 hover:text-indigo-700 text-xs sm:text-sm font-medium touch-target">
-                                                {t.square.viewTrip}<ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <div className="flex items-center gap-1 px-2 py-1 bg-blue-50 rounded-md">
+                                                <Calendar className="w-3 h-3 text-blue-500" />
+                                                <span className="text-xs font-medium text-blue-700">{trip.days_count || 3}天</span>
+                                            </div>
+                                        </div>
+
+                                        {/* 操作按钮 */}
+                                        <div className="flex items-center gap-2 pt-3 border-t border-emerald-50">
+                                            <Link
+                                                href={`/trip/${trip.id}`}
+                                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors text-xs font-medium touch-target"
+                                            >
+                                                <Eye className="w-3.5 h-3.5" />
+                                                {t.square.viewTrip}
                                             </Link>
+                                            <button
+                                                onClick={() => handleLike(trip.id)}
+                                                className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors text-xs font-medium touch-target ${trip.is_liked ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-500"}`}
+                                            >
+                                                <Heart className={`w-3.5 h-3.5 ${trip.is_liked ? "fill-current" : ""}`} />
+                                                {trip.likes_count || 0}
+                                            </button>
+                                            <button
+                                                onClick={() => handleFavorite(trip.id)}
+                                                className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors text-xs font-medium touch-target ${trip.is_favorited ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-gray-500 hover:bg-amber-50 hover:text-amber-500"}`}
+                                            >
+                                                <Bookmark className={`w-3.5 h-3.5 ${trip.is_favorited ? "fill-current" : ""}`} />
+                                                {trip.favorites_count || 0}
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

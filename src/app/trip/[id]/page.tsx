@@ -37,6 +37,10 @@ import {
     Printer,
     Share2,
     Globe,
+    Upload,
+    CheckCircle2,
+    Sparkles,
+    Leaf,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate, formatCurrency } from "@/lib/utils";
