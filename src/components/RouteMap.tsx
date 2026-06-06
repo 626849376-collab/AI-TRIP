@@ -37,6 +37,7 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
     const [iframeLoaded, setIframeLoaded] = useState(false);
     const [iframeError, setIframeError] = useState(false);
     const [mapUrl, setMapUrl] = useState<string>("");
+    const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // Get destination coordinates
     const destCoords = useMemo(() => {
@@ -57,11 +58,6 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
 
     // Build map URL
     useEffect(() => {
-        // Set loading to false immediately to prevent infinite loading
-        setIsLoading(false);
-
-        if (!mapContainerRef.current) return;
-
         const centerLat = destCoords.lat;
         const centerLng = destCoords.lng;
 
@@ -69,9 +65,21 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
         const bbox = `${centerLng - padding},${centerLat - padding},${centerLng + padding},${centerLat + padding}`;
 
         // Use OpenStreetMap embed with proper marker format
-        // The embed URL supports marker parameter: marker=lat,lng
         const url = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${centerLat},${centerLng}`;
         setMapUrl(url);
+
+        // Set a timeout to stop showing loading spinner after 5 seconds
+        // This handles cases where the iframe onLoad event doesn't fire
+        timeoutRef.current = setTimeout(() => {
+            setIsLoading(false);
+            setIframeLoaded(true);
+        }, 5000);
+
+        return () => {
+            if (timeoutRef.current) {
+                clearTimeout(timeoutRef.current);
+            }
+        };
     }, [destCoords.lat, destCoords.lng, destination]);
 
     // Open in full map view
@@ -89,6 +97,23 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
         const url = `https://www.google.com/maps/dir/${origin}/${destinations}`;
         window.open(url, "_blank");
     }, [destCoords.lat, destCoords.lng, activityCoords]);
+
+    const handleIframeLoad = () => {
+        setIframeLoaded(true);
+        setIsLoading(false);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+    };
+
+    const handleIframeError = () => {
+        setIframeLoaded(true);
+        setIsLoading(false);
+        setIframeError(true);
+        if (timeoutRef.current) {
+            clearTimeout(timeoutRef.current);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -168,31 +193,14 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
                             src={mapUrl}
                             width="100%"
                             height="100%"
-                            style={{ border: 0, display: iframeLoaded ? "block" : "none" }}
+                            style={{ border: 0 }}
                             allowFullScreen
                             loading="lazy"
-                            onLoad={() => setIframeLoaded(true)}
-                            onError={() => {
-                                setIframeLoaded(true);
-                                setIframeError(true);
-                            }}
+                            onLoad={handleIframeLoad}
+                            onError={handleIframeError}
                             title={`${destination} Day ${dayNumber} Map`}
                             className="rounded-lg"
                         />
-                    )}
-                    {/* Timeout fallback */}
-                    {!iframeLoaded && (
-                        <div className="absolute bottom-2 left-2 right-2">
-                            <button
-                                onClick={() => {
-                                    setIframeLoaded(true);
-                                    setIframeError(true);
-                                }}
-                                className="w-full text-xs text-gray-400 hover:text-gray-600 bg-white/80 backdrop-blur-sm rounded-lg py-1.5 px-3 transition-colors"
-                            >
-                                地图加载超时？点击切换到备用视图
-                            </button>
-                        </div>
                     )}
                 </div>
 
