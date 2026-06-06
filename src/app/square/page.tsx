@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase, getCurrentUser, getProfile, getPublicTrips, signOut, createTripPlan, saveTripDetails } from "@/lib/supabase";
+import { supabase, getCurrentUser, getProfile, getPublicTrips, signOut, createTripPlan, saveTripDetails, toggleLike, toggleFavorite, checkIfLiked, checkIfFavorited } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { translations } from "@/lib/translations";
@@ -75,7 +75,22 @@ export default function SquarePage() {
             console.log("Loading trips...");
             const result = await getPublicTrips();
             console.log("Trips loaded:", result);
-            setTrips(result.data || []);
+
+            // 检查用户是否已点赞/收藏每个行程
+            if (user?.id && result.data) {
+                const tripsWithStatus = await Promise.all(
+                    result.data.map(async (trip: any) => {
+                        const [isLiked, isFavorited] = await Promise.all([
+                            checkIfLiked(trip.id, user.id),
+                            checkIfFavorited(trip.id, user.id),
+                        ]);
+                        return { ...trip, is_liked: isLiked, is_favorited: isFavorited };
+                    })
+                );
+                setTrips(tripsWithStatus);
+            } else {
+                setTrips(result.data || []);
+            }
         } catch (error) {
             console.error("Error loading trips:", error);
             if (error instanceof Error) {
@@ -95,29 +110,83 @@ export default function SquarePage() {
     const handleLike = async (tripId: string) => {
         try {
             const trip = trips.find((t) => t.id === tripId);
-            if (!trip) return;
-            if (trip.is_liked) {
-                await supabase.from("trip_likes").delete().eq("trip_id", tripId).eq("user_id", user?.id);
-                setTrips((prev) => prev.map((t) => t.id === tripId ? { ...t, is_liked: false, likes_count: t.likes_count - 1 } : t));
-            } else {
-                await supabase.from("trip_likes").insert({ trip_id: tripId, user_id: user?.id });
-                setTrips((prev) => prev.map((t) => t.id === tripId ? { ...t, is_liked: true, likes_count: t.likes_count + 1 } : t));
+            if (!trip || !user?.id) return;
+
+            // 乐观更新 UI
+            const wasLiked = trip.is_liked;
+            setTrips((prev) => prev.map((t) =>
+                t.id === tripId ? {
+                    ...t,
+                    is_liked: !wasLiked,
+                    likes_count: t.likes_count + (wasLiked ? -1 : 1)
+                } : t
+            ));
+
+            // 调用 toggleLike 函数
+            const isNowLiked = await toggleLike(tripId, user.id);
+
+            // 如果服务器返回状态与乐观更新不一致，修正
+            if (isNowLiked === wasLiked) {
+                setTrips((prev) => prev.map((t) =>
+                    t.id === tripId ? {
+                        ...t,
+                        is_liked: isNowLiked,
+                        likes_count: t.likes_count + (isNowLiked ? 1 : -1)
+                    } : t
+                ));
             }
-        } catch (error: any) { toast.error(t.square.likes || "操作失败"); }
+        } catch (error: any) {
+            // 出错时回滚
+            setTrips((prev) => prev.map((t) =>
+                t.id === tripId ? {
+                    ...t,
+                    is_liked: !t.is_liked,
+                    likes_count: t.likes_count + (t.is_liked ? 1 : -1)
+                } : t
+            ));
+            toast.error("操作失败");
+        }
     };
 
     const handleFavorite = async (tripId: string) => {
         try {
             const trip = trips.find((t) => t.id === tripId);
-            if (!trip) return;
-            if (trip.is_favorited) {
-                await supabase.from("trip_favorites").delete().eq("trip_id", tripId).eq("user_id", user?.id);
-                setTrips((prev) => prev.map((t) => t.id === tripId ? { ...t, is_favorited: false, favorites_count: t.favorites_count - 1 } : t));
-            } else {
-                await supabase.from("trip_favorites").insert({ trip_id: tripId, user_id: user?.id });
-                setTrips((prev) => prev.map((t) => t.id === tripId ? { ...t, is_favorited: true, favorites_count: t.favorites_count + 1 } : t));
+            if (!trip || !user?.id) return;
+
+            // 乐观更新 UI
+            const wasFavorited = trip.is_favorited;
+            setTrips((prev) => prev.map((t) =>
+                t.id === tripId ? {
+                    ...t,
+                    is_favorited: !wasFavorited,
+                    favorites_count: t.favorites_count + (wasFavorited ? -1 : 1)
+                } : t
+            ));
+
+            // 调用 toggleFavorite 函数
+            const isNowFavorited = await toggleFavorite(tripId, user.id);
+
+            // 如果服务器返回状态与乐观更新不一致，修正
+            if (isNowFavorited === wasFavorited) {
+                setTrips((prev) => prev.map((t) =>
+                    t.id === tripId ? {
+                        ...t,
+                        is_favorited: isNowFavorited,
+                        favorites_count: t.favorites_count + (isNowFavorited ? 1 : -1)
+                    } : t
+                ));
             }
-        } catch (error: any) { toast.error(t.square.favorites || "操作失败"); }
+        } catch (error: any) {
+            // 出错时回滚
+            setTrips((prev) => prev.map((t) =>
+                t.id === tripId ? {
+                    ...t,
+                    is_favorited: !t.is_favorited,
+                    favorites_count: t.favorites_count + (t.is_favorited ? 1 : -1)
+                } : t
+            ));
+            toast.error("操作失败");
+        }
     };
 
     const handleSignOut = async () => {
