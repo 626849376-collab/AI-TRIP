@@ -88,6 +88,10 @@ CREATE POLICY "用户可查看自己的资料"
     ON user_profiles FOR SELECT
     USING (auth.uid() = id);
 
+CREATE POLICY "所有人可查看公开资料（名称和头像）"
+    ON user_profiles FOR SELECT
+    USING (TRUE);
+
 CREATE POLICY "用户可插入自己的资料"
     ON user_profiles FOR INSERT
     WITH CHECK (auth.uid() = id);
