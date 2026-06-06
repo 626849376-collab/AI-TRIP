@@ -367,12 +367,12 @@ export async function toggleLike(tripId: string, userId: string): Promise<{ isLi
     }
 
     // Get updated likes count from trip_likes table (RLS allows everyone to SELECT)
-    const { count } = await supabase
+    const { data: likesData } = await supabase
         .from("trip_likes")
-        .select("*", { count: "exact", head: true })
+        .select("id")
         .eq("trip_id", tripId);
 
-    return { isLiked: !existing, likesCount: count || 0 };
+    return { isLiked: !existing, likesCount: likesData?.length || 0 };
 }
 
 export async function checkIfLiked(tripId: string, userId: string): Promise<boolean> {
@@ -418,12 +418,12 @@ export async function toggleFavorite(tripId: string, userId: string): Promise<{ 
     }
 
     // Get updated favorites count from trip_favorites table (RLS allows everyone to SELECT)
-    const { count } = await supabase
+    const { data: favoritesData } = await supabase
         .from("trip_favorites")
-        .select("*", { count: "exact", head: true })
+        .select("id")
         .eq("trip_id", tripId);
 
-    return { isFavorited: !existing, favoritesCount: count || 0 };
+    return { isFavorited: !existing, favoritesCount: favoritesData?.length || 0 };
 }
 
 export async function checkIfFavorited(tripId: string, userId: string): Promise<boolean> {
