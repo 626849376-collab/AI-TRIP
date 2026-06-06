@@ -10,7 +10,8 @@ interface EmptyStateProps {
     description: string;
     action?: {
         label: string;
-        href: string;
+        href?: string;
+        onClick?: () => void;
     };
     secondaryAction?: {
         label: string;
@@ -48,12 +49,21 @@ export default function EmptyState({
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
                 {action && (
-                    <Link
-                        href={action.href}
-                        className="gradient-primary text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2 w-full sm:w-auto justify-center touch-target"
-                    >
-                        {action.label}
-                    </Link>
+                    action.href ? (
+                        <Link
+                            href={action.href}
+                            className="gradient-primary text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2 w-full sm:w-auto justify-center touch-target"
+                        >
+                            {action.label}
+                        </Link>
+                    ) : (
+                        <button
+                            onClick={action.onClick}
+                            className="gradient-primary text-white px-6 py-2.5 rounded-xl font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2 w-full sm:w-auto justify-center touch-target"
+                        >
+                            {action.label}
+                        </button>
+                    )
                 )}
                 {secondaryAction && (
                     <button

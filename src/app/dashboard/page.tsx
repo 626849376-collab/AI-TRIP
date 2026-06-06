@@ -107,7 +107,7 @@ export default function DashboardPage() {
                     p.id === tripId ? { ...p, is_public: true } : p
                 )
             );
-            toast.success(t.dashboard.publishSuccess || "行程已发布到旅行广场！");
+            toast.success(t.dashboard.publishSuccess || "行程已发布到旅行广场");
         } catch (error: any) {
             toast.error(t.dashboard.publishFailed || "发布失败");
         } finally {
@@ -150,7 +150,7 @@ export default function DashboardPage() {
                 onClose={() => setDeleteConfirm({ isOpen: false, tripId: null })}
                 onConfirm={handleDeleteTrip}
                 title={t.dashboard.deleteConfirm}
-                message="此操作不可撤销，删除后无法恢复。"
+                message="此操作不可撤销，删除后无法恢复"
                 confirmText="确认删除"
                 cancelText="取消"
                 variant="danger"
@@ -266,7 +266,7 @@ export default function DashboardPage() {
                             </p>
                         </div>
                         <Link
-                            href="/trip/create"
+                            href="/square"
                             className="gradient-primary text-white px-5 sm:px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2 w-full sm:w-auto justify-center touch-target shadow-sm hover:shadow-md"
                         >
                             <Plus className="w-5 h-5" />
@@ -293,7 +293,7 @@ export default function DashboardPage() {
                             description={t.dashboard.noPlansDesc}
                             action={{
                                 label: t.dashboard.createPlan,
-                                href: "/trip/create",
+                                href: "/square",
                             }}
                         />
                     ) : (
@@ -393,7 +393,7 @@ export default function DashboardPage() {
                                                 <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
                                             </div>
                                             <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-green-400 rounded-full flex items-center justify-center animate-pulse">
-                                                <span className="text-white text-[10px] sm:text-xs font-bold">✦</span>
+                                                <span className="text-white text-[10px] sm:text-xs font-bold">✓</span>
                                             </div>
                                         </div>
                                         <div>

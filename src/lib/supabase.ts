@@ -1,7 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
 // 在浏览器端检查环境变量是否配置
 if (typeof window !== "undefined") {
@@ -15,13 +15,13 @@ if (typeof window !== "undefined") {
 }
 
 // 使用惰性初始化，避免在构建时因缺少环境变量而报错
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
+let supabaseInstance: SupabaseClient | null = null;
 
-function getSupabaseClient() {
+function getSupabaseClient(): SupabaseClient {
     if (!supabaseInstance) {
         if (!supabaseUrl || !supabaseAnonKey) {
             if (typeof window === "undefined") {
-                // 服务端构建时，返回一个不会实际执行查询的模拟对象
+                // 服务端构建时，返回一个不会实际执行查询的模拟对象（不缓存）
                 return createClient("https://placeholder.supabase.co", "placeholder-key");
             }
             throw new Error(
@@ -33,6 +33,12 @@ function getSupabaseClient() {
     return supabaseInstance;
 }
 
+// 使用函数获取客户端实例，避免模块加载时立即初始化
+export function getSupabase(): SupabaseClient {
+    return getSupabaseClient();
+}
+
+// 导出 supabase 实例（惰性初始化）
 export const supabase = getSupabaseClient();
 
 export async function getCurrentUser() {

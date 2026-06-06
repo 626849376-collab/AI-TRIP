@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useMemo, useCallback } from "react";
 import { DESTINATION_COORDS } from "@/services/travel-data";
-import { MapPin, Navigation, Loader2 } from "lucide-react";
+import { MapPin, Navigation, Loader2, AlertCircle, ExternalLink } from "lucide-react";
 
 interface Activity {
     name: string;
@@ -33,76 +33,127 @@ const FALLBACK_COORDS: Record<string, { lat: number; lng: number }> = {
 
 export default function RouteMap({ activities, destination, dayNumber }: RouteMapProps) {
     const mapContainerRef = useRef<HTMLDivElement>(null);
-    const mapInstanceRef = useRef<any>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const [iframeLoaded, setIframeLoaded] = useState(false);
+    const [iframeError, setIframeError] = useState(false);
     const [mapUrl, setMapUrl] = useState<string>("");
 
     // Get destination coordinates
-    const destCoords = DESTINATION_COORDS[destination] || FALLBACK_COORDS[destination] || { lat: 35.6762, lng: 139.6503 };
+    const destCoords = useMemo(() => {
+        return DESTINATION_COORDS[destination] || FALLBACK_COORDS[destination] || { lat: 35.6762, lng: 139.6503 };
+    }, [destination]);
 
     // Collect all valid activity coordinates
-    const activityCoords = activities
-        .filter((a) => a.lat && a.lng)
-        .map((a) => ({
-            name: a.name,
-            lat: a.lat!,
-            lng: a.lng!,
-            time: a.time,
-        }));
+    const activityCoords = useMemo(() => {
+        return activities
+            .filter((a) => a.lat && a.lng)
+            .map((a) => ({
+                name: a.name,
+                lat: a.lat!,
+                lng: a.lng!,
+                time: a.time,
+            }));
+    }, [activities]);
 
+    // Build map URL
     useEffect(() => {
+        // Set loading to false immediately to prevent infinite loading
+        setIsLoading(false);
+
         if (!mapContainerRef.current) return;
 
-        // Build the OpenStreetMap URL with markers
-        const buildMapUrl = () => {
-            const baseUrl = "https://www.openstreetmap.org/export/embed.html";
-            const centerLat = destCoords.lat;
-            const centerLng = destCoords.lng;
+        const baseUrl = "https://www.openstreetmap.org/export/embed.html";
+        const centerLat = destCoords.lat;
+        const centerLng = destCoords.lng;
 
-            // Calculate bounding box with padding
-            const padding = 0.05;
-            const bbox = `${centerLng - padding},${centerLat - padding},${centerLng + padding},${centerLat + padding}`;
+        const padding = 0.05;
+        const bbox = `${centerLng - padding},${centerLat - padding},${centerLng + padding},${centerLat + padding}`;
 
-            // Build marker layer URL
-            let markerParams = "";
-            if (activityCoords.length > 0) {
-                markerParams = activityCoords
-                    .map((coord, i) => `&marker=${i + 1}|${coord.lat},${coord.lng}`)
-                    .join("");
-            } else {
-                // Add destination marker
-                markerParams = `&marker=${destination}|${destCoords.lat},${destCoords.lng}`;
-            }
+        let markerParams = "";
+        if (activityCoords.length > 0) {
+            markerParams = activityCoords
+                .map((coord, i) => `&marker=${i + 1}|${coord.lat},${coord.lng}`)
+                .join("");
+        } else {
+            markerParams = `&marker=${destination}|${destCoords.lat},${destCoords.lng}`;
+        }
 
-            return `${baseUrl}?bbox=${bbox}&layer=mapnik${markerParams}`;
-        };
-
-        setMapUrl(buildMapUrl());
-        setIsLoading(false);
-    }, [activities, destination, destCoords.lat, destCoords.lng]);
+        const url = `${baseUrl}?bbox=${bbox}&layer=mapnik${markerParams}`;
+        setMapUrl(url);
+    }, [destCoords.lat, destCoords.lng, activityCoords.length, destination]);
 
     // Open in full map view
-    const openInMaps = () => {
+    const openInMaps = useCallback(() => {
         const url = `https://www.openstreetmap.org/?mlat=${destCoords.lat}&mlon=${destCoords.lng}#map=14/${destCoords.lat}/${destCoords.lng}`;
         window.open(url, "_blank");
-    };
+    }, [destCoords.lat, destCoords.lng]);
 
     // Open Google Maps directions
-    const openGoogleMaps = () => {
+    const openGoogleMaps = useCallback(() => {
         const origin = `${destCoords.lat},${destCoords.lng}`;
         const destinations = activityCoords
             .map((c) => `${c.lat},${c.lng}`)
             .join("/");
         const url = `https://www.google.com/maps/dir/${origin}/${destinations}`;
         window.open(url, "_blank");
-    };
+    }, [destCoords.lat, destCoords.lng, activityCoords]);
 
     if (isLoading) {
         return (
             <div className="bg-gray-50 rounded-lg p-8 text-center">
-                <Loader2 className="w-8 h-8 animate-spin text-primary-500 mx-auto mb-2" />
+                <Loader2 className="w-8 h-8 animate-spin text-indigo-500 mx-auto mb-2" />
                 <p className="text-sm text-gray-400">加载地图中...</p>
+            </div>
+        );
+    }
+
+    if (iframeError) {
+        return (
+            <div className="space-y-3">
+                <div className="bg-amber-50 rounded-lg p-6 text-center border border-amber-200">
+                    <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+                    <p className="text-sm font-medium text-amber-800 mb-2">地图加载失败</p>
+                    <p className="text-xs text-amber-600 mb-4">可能是网络限制导致地图无法加载，你可以通过以下方式查看位置：</p>
+                    <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                        <button
+                            onClick={openInMaps}
+                            className="inline-flex items-center gap-2 px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors text-sm touch-target"
+                        >
+                            <ExternalLink className="w-4 h-4" />
+                            在OpenStreetMap中查看
+                        </button>
+                        {activityCoords.length > 0 && (
+                            <button
+                                onClick={openGoogleMaps}
+                                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm touch-target"
+                            >
+                                <Navigation className="w-4 h-4" />
+                                在Google Maps中导航
+                            </button>
+                        )}
+                    </div>
+                </div>
+                {activityCoords.length > 0 && (
+                    <div className="bg-gray-50 rounded-lg p-3">
+                        <p className="text-xs font-medium text-gray-500 mb-2 flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            行程路线（共 {activityCoords.length} 个地点）
+                        </p>
+                        <div className="space-y-1.5">
+                            {activityCoords.map((coord, i) => (
+                                <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                                    <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-[10px] flex-shrink-0">
+                                        {i + 1}
+                                    </span>
+                                    <span className="truncate">{coord.name}</span>
+                                    {coord.time && (
+                                        <span className="text-gray-400 flex-shrink-0 ml-auto">{coord.time}</span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         );
     }
@@ -115,18 +166,41 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
                     ref={mapContainerRef}
                     className="w-full h-[250px] sm:h-[300px] bg-gray-100"
                 >
+                    {!iframeLoaded && (
+                        <div className="w-full h-full flex items-center justify-center">
+                            <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+                        </div>
+                    )}
                     {mapUrl && (
                         <iframe
                             src={mapUrl}
                             width="100%"
                             height="100%"
-                            style={{ border: 0 }}
+                            style={{ border: 0, display: iframeLoaded ? "block" : "none" }}
                             allowFullScreen
                             loading="lazy"
-                            referrerPolicy="no-referrer-when-downgrade"
+                            onLoad={() => setIframeLoaded(true)}
+                            onError={() => {
+                                setIframeLoaded(true);
+                                setIframeError(true);
+                            }}
                             title={`${destination} Day ${dayNumber} Map`}
                             className="rounded-lg"
                         />
+                    )}
+                    {/* Timeout fallback */}
+                    {!iframeLoaded && (
+                        <div className="absolute bottom-2 left-2 right-2">
+                            <button
+                                onClick={() => {
+                                    setIframeLoaded(true);
+                                    setIframeError(true);
+                                }}
+                                className="w-full text-xs text-gray-400 hover:text-gray-600 bg-white/80 backdrop-blur-sm rounded-lg py-1.5 px-3 transition-colors"
+                            >
+                                地图加载超时？点击切换到备用视图
+                            </button>
+                        </div>
                     )}
                 </div>
 
@@ -137,7 +211,7 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
                         className="w-8 h-8 bg-white rounded-lg shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors icon-button"
                         title="在OpenStreetMap中查看"
                     >
-                        <MapPin className="w-4 h-4 text-primary-600" />
+                        <MapPin className="w-4 h-4 text-indigo-600" />
                     </button>
                     {activityCoords.length > 0 && (
                         <button
@@ -154,7 +228,7 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
                 <div className="absolute bottom-2 left-2">
                     <div className="bg-white/90 backdrop-blur-sm rounded-lg px-2.5 py-1.5 shadow-sm">
                         <p className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-primary-500" />
+                            <MapPin className="w-3 h-3 text-indigo-500" />
                             {destination}
                         </p>
                     </div>
@@ -170,18 +244,13 @@ export default function RouteMap({ activities, destination, dayNumber }: RouteMa
                     </p>
                     <div className="space-y-1.5">
                         {activityCoords.map((coord, i) => (
-                            <div
-                                key={i}
-                                className="flex items-center gap-2 text-xs text-gray-600"
-                            >
-                                <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-medium text-[10px] flex-shrink-0">
+                            <div key={i} className="flex items-center gap-2 text-xs text-gray-600">
+                                <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-[10px] flex-shrink-0">
                                     {i + 1}
                                 </span>
                                 <span className="truncate">{coord.name}</span>
                                 {coord.time && (
-                                    <span className="text-gray-400 flex-shrink-0 ml-auto">
-                                        {coord.time}
-                                    </span>
+                                    <span className="text-gray-400 flex-shrink-0 ml-auto">{coord.time}</span>
                                 )}
                             </div>
                         ))}
