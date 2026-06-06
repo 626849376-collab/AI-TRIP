@@ -84,109 +84,166 @@ ALTER TABLE trip_likes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE trip_favorites ENABLE ROW LEVEL SECURITY;
 
 -- user_profiles 策略
-CREATE POLICY "用户可查看自己的资料"
-    ON user_profiles FOR SELECT
-    USING (auth.uid() = id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可查看自己的资料" ON user_profiles;
+    CREATE POLICY "用户可查看自己的资料"
+        ON user_profiles FOR SELECT
+        USING (auth.uid() = id);
+END $$;
 
-CREATE POLICY "所有人可查看公开资料（名称和头像）"
-    ON user_profiles FOR SELECT
-    USING (TRUE);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "所有人可查看公开资料（名称和头像）" ON user_profiles;
+    CREATE POLICY "所有人可查看公开资料（名称和头像）"
+        ON user_profiles FOR SELECT
+        USING (TRUE);
+END $$;
 
-CREATE POLICY "用户可插入自己的资料"
-    ON user_profiles FOR INSERT
-    WITH CHECK (auth.uid() = id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可插入自己的资料" ON user_profiles;
+    CREATE POLICY "用户可插入自己的资料"
+        ON user_profiles FOR INSERT
+        WITH CHECK (auth.uid() = id);
+END $$;
 
-CREATE POLICY "用户可更新自己的资料"
-    ON user_profiles FOR UPDATE
-    USING (auth.uid() = id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可更新自己的资料" ON user_profiles;
+    CREATE POLICY "用户可更新自己的资料"
+        ON user_profiles FOR UPDATE
+        USING (auth.uid() = id);
+END $$;
 
 -- trip_plans 策略
-CREATE POLICY "用户可查看自己的旅行计划"
-    ON trip_plans FOR SELECT
-    USING (auth.uid() = user_id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可查看自己的旅行计划" ON trip_plans;
+    CREATE POLICY "用户可查看自己的旅行计划"
+        ON trip_plans FOR SELECT
+        USING (auth.uid() = user_id);
+END $$;
 
-CREATE POLICY "用户可查看公开的旅行计划"
-    ON trip_plans FOR SELECT
-    USING (is_public = TRUE AND is_deleted = FALSE);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可查看公开的旅行计划" ON trip_plans;
+    CREATE POLICY "用户可查看公开的旅行计划"
+        ON trip_plans FOR SELECT
+        USING (is_public = TRUE AND is_deleted = FALSE);
+END $$;
 
-CREATE POLICY "用户可创建自己的旅行计划"
-    ON trip_plans FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可创建自己的旅行计划" ON trip_plans;
+    CREATE POLICY "用户可创建自己的旅行计划"
+        ON trip_plans FOR INSERT
+        WITH CHECK (auth.uid() = user_id);
+END $$;
 
-CREATE POLICY "用户可更新自己的旅行计划"
-    ON trip_plans FOR UPDATE
-    USING (auth.uid() = user_id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可更新自己的旅行计划" ON trip_plans;
+    CREATE POLICY "用户可更新自己的旅行计划"
+        ON trip_plans FOR UPDATE
+        USING (auth.uid() = user_id);
+END $$;
 
-CREATE POLICY "用户可删除自己的旅行计划"
-    ON trip_plans FOR DELETE
-    USING (auth.uid() = user_id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可删除自己的旅行计划" ON trip_plans;
+    CREATE POLICY "用户可删除自己的旅行计划"
+        ON trip_plans FOR DELETE
+        USING (auth.uid() = user_id);
+END $$;
 
 -- trip_details 策略
-CREATE POLICY "用户可查看自己旅行计划的详情"
-    ON trip_details FOR SELECT
-    USING (
-        EXISTS (
-            SELECT 1 FROM trip_plans
-            WHERE trip_plans.id = trip_details.trip_id
-            AND (trip_plans.user_id = auth.uid() OR trip_plans.is_public = TRUE)
-        )
-    );
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可查看自己旅行计划的详情" ON trip_details;
+    CREATE POLICY "用户可查看自己旅行计划的详情"
+        ON trip_details FOR SELECT
+        USING (
+            EXISTS (
+                SELECT 1 FROM trip_plans
+                WHERE trip_plans.id = trip_details.trip_id
+                AND (trip_plans.user_id = auth.uid() OR trip_plans.is_public = TRUE)
+            )
+        );
+END $$;
 
-CREATE POLICY "用户可创建自己旅行计划的详情"
-    ON trip_details FOR INSERT
-    WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM trip_plans
-            WHERE trip_plans.id = trip_details.trip_id
-            AND trip_plans.user_id = auth.uid()
-        )
-    );
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可创建自己旅行计划的详情" ON trip_details;
+    CREATE POLICY "用户可创建自己旅行计划的详情"
+        ON trip_details FOR INSERT
+        WITH CHECK (
+            EXISTS (
+                SELECT 1 FROM trip_plans
+                WHERE trip_plans.id = trip_details.trip_id
+                AND trip_plans.user_id = auth.uid()
+            )
+        );
+END $$;
 
-CREATE POLICY "用户可更新自己旅行计划的详情"
-    ON trip_details FOR UPDATE
-    USING (
-        EXISTS (
-            SELECT 1 FROM trip_plans
-            WHERE trip_plans.id = trip_details.trip_id
-            AND trip_plans.user_id = auth.uid()
-        )
-    );
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可更新自己旅行计划的详情" ON trip_details;
+    CREATE POLICY "用户可更新自己旅行计划的详情"
+        ON trip_details FOR UPDATE
+        USING (
+            EXISTS (
+                SELECT 1 FROM trip_plans
+                WHERE trip_plans.id = trip_details.trip_id
+                AND trip_plans.user_id = auth.uid()
+            )
+        );
+END $$;
 
-CREATE POLICY "用户可删除自己旅行计划的详情"
-    ON trip_details FOR DELETE
-    USING (
-        EXISTS (
-            SELECT 1 FROM trip_plans
-            WHERE trip_plans.id = trip_details.trip_id
-            AND trip_plans.user_id = auth.uid()
-        )
-    );
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可删除自己旅行计划的详情" ON trip_details;
+    CREATE POLICY "用户可删除自己旅行计划的详情"
+        ON trip_details FOR DELETE
+        USING (
+            EXISTS (
+                SELECT 1 FROM trip_plans
+                WHERE trip_plans.id = trip_details.trip_id
+                AND trip_plans.user_id = auth.uid()
+            )
+        );
+END $$;
 
 -- trip_likes 策略
-CREATE POLICY "所有人可查看点赞"
-    ON trip_likes FOR SELECT
-    USING (TRUE);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "所有人可查看点赞" ON trip_likes;
+    CREATE POLICY "所有人可查看点赞"
+        ON trip_likes FOR SELECT
+        USING (TRUE);
+END $$;
 
-CREATE POLICY "用户可点赞"
-    ON trip_likes FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可点赞" ON trip_likes;
+    CREATE POLICY "用户可点赞"
+        ON trip_likes FOR INSERT
+        WITH CHECK (auth.uid() = user_id);
+END $$;
 
-CREATE POLICY "用户可取消点赞"
-    ON trip_likes FOR DELETE
-    USING (auth.uid() = user_id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可取消点赞" ON trip_likes;
+    CREATE POLICY "用户可取消点赞"
+        ON trip_likes FOR DELETE
+        USING (auth.uid() = user_id);
+END $$;
 
 -- trip_favorites 策略
-CREATE POLICY "所有人可查看收藏"
-    ON trip_favorites FOR SELECT
-    USING (TRUE);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "所有人可查看收藏" ON trip_favorites;
+    CREATE POLICY "所有人可查看收藏"
+        ON trip_favorites FOR SELECT
+        USING (TRUE);
+END $$;
 
-CREATE POLICY "用户可收藏"
-    ON trip_favorites FOR INSERT
-    WITH CHECK (auth.uid() = user_id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可收藏" ON trip_favorites;
+    CREATE POLICY "用户可收藏"
+        ON trip_favorites FOR INSERT
+        WITH CHECK (auth.uid() = user_id);
+END $$;
 
-CREATE POLICY "用户可取消收藏"
-    ON trip_favorites FOR DELETE
-    USING (auth.uid() = user_id);
+DO $$ BEGIN
+    DROP POLICY IF EXISTS "用户可取消收藏" ON trip_favorites;
+    CREATE POLICY "用户可取消收藏"
+        ON trip_favorites FOR DELETE
+        USING (auth.uid() = user_id);
+END $$;
 
 -- ============================================
 -- 触发器：自动更新 updated_at
