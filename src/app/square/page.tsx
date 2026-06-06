@@ -97,8 +97,11 @@ export default function SquarePage() {
             const trip = trips.find((t) => t.id === tripId);
             if (!trip || !user?.id) return;
 
+            console.log("handleLike called for trip:", tripId, "user:", user.id);
+
             // 调用 toggleLike 函数获取服务器返回的准确状态和计数
             const result = await toggleLike(tripId, user.id);
+            console.log("toggleLike result:", result);
 
             // 使用服务器返回的准确数据更新 UI
             setTrips((prev) => prev.map((t) =>
@@ -109,7 +112,11 @@ export default function SquarePage() {
                 } : t
             ));
         } catch (error: any) {
-            toast.error("操作失败");
+            console.error("handleLike error:", error);
+            console.error("Error message:", error?.message);
+            console.error("Error details:", error?.details);
+            console.error("Error hint:", error?.hint);
+            toast.error("操作失败: " + (error?.message || "未知错误"));
         }
     };
 
@@ -118,8 +125,11 @@ export default function SquarePage() {
             const trip = trips.find((t) => t.id === tripId);
             if (!trip || !user?.id) return;
 
+            console.log("handleFavorite called for trip:", tripId, "user:", user.id);
+
             // 调用 toggleFavorite 函数获取服务器返回的准确状态和计数
             const result = await toggleFavorite(tripId, user.id);
+            console.log("toggleFavorite result:", result);
 
             // 使用服务器返回的准确数据更新 UI
             setTrips((prev) => prev.map((t) =>
@@ -130,7 +140,11 @@ export default function SquarePage() {
                 } : t
             ));
         } catch (error: any) {
-            toast.error("操作失败");
+            console.error("handleFavorite error:", error);
+            console.error("Error message:", error?.message);
+            console.error("Error details:", error?.details);
+            console.error("Error hint:", error?.hint);
+            toast.error("操作失败: " + (error?.message || "未知错误"));
         }
     };
 
