@@ -340,7 +340,7 @@ export async function getTripByShareCode(shareCode: string) {
 // ============================================
 
 export async function toggleLike(tripId: string, userId: string): Promise<{ isLiked: boolean; likesCount: number }> {
-    // Check if already liked - use maybeSingle() instead of single() to avoid error when no rows
+    // Check if already liked
     const { data: existing } = await supabase
         .from("trip_likes")
         .select("id")
@@ -366,13 +366,14 @@ export async function toggleLike(tripId: string, userId: string): Promise<{ isLi
         if (error) throw error;
     }
 
-    // Get updated likes count
-    const { count } = await supabase
-        .from("trip_likes")
-        .select("*", { count: "exact", head: true })
-        .eq("trip_id", tripId);
+    // Get updated likes count from trip_plans (updated by database trigger)
+    const { data: trip } = await supabase
+        .from("trip_plans")
+        .select("likes_count")
+        .eq("id", tripId)
+        .single();
 
-    return { isLiked: !existing, likesCount: count || 0 };
+    return { isLiked: !existing, likesCount: trip?.likes_count || 0 };
 }
 
 export async function checkIfLiked(tripId: string, userId: string): Promise<boolean> {
@@ -391,7 +392,7 @@ export async function checkIfLiked(tripId: string, userId: string): Promise<bool
 // ============================================
 
 export async function toggleFavorite(tripId: string, userId: string): Promise<{ isFavorited: boolean; favoritesCount: number }> {
-    // Check if already favorited - use maybeSingle() instead of single() to avoid error when no rows
+    // Check if already favorited
     const { data: existing } = await supabase
         .from("trip_favorites")
         .select("id")
@@ -417,13 +418,14 @@ export async function toggleFavorite(tripId: string, userId: string): Promise<{ 
         if (error) throw error;
     }
 
-    // Get updated favorites count
-    const { count } = await supabase
-        .from("trip_favorites")
-        .select("*", { count: "exact", head: true })
-        .eq("trip_id", tripId);
+    // Get updated favorites count from trip_plans (updated by database trigger)
+    const { data: trip } = await supabase
+        .from("trip_plans")
+        .select("favorites_count")
+        .eq("id", tripId)
+        .single();
 
-    return { isFavorited: !existing, favoritesCount: count || 0 };
+    return { isFavorited: !existing, favoritesCount: trip?.favorites_count || 0 };
 }
 
 export async function checkIfFavorited(tripId: string, userId: string): Promise<boolean> {
