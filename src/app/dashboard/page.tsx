@@ -11,6 +11,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import SkeletonLoader from "@/components/SkeletonLoader";
 import EmptyState from "@/components/EmptyState";
+import AISettings from "@/components/AISettings";
 import {
     MapPin,
     Plus,
@@ -31,6 +32,7 @@ import {
     Sparkles,
     RefreshCw,
     Calculator,
+    Settings2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -44,6 +46,7 @@ export default function DashboardPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [showAISettings, setShowAISettings] = useState(false);
     const [publishingId, setPublishingId] = useState<string | null>(null);
     const [deleteConfirm, setDeleteConfirm] = useState<{ isOpen: boolean; tripId: string | null }>({
         isOpen: false,
@@ -145,6 +148,8 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            <AISettings isOpen={showAISettings} onClose={() => setShowAISettings(false)} />
+
             {/* Confirmation Dialog */}
             <ConfirmDialog
                 isOpen={deleteConfirm.isOpen}
@@ -175,15 +180,25 @@ export default function DashboardPage() {
 
                         {/* Desktop Nav */}
                         <div className="hidden md:flex items-center gap-4">
-                            <button
-                                onClick={handleRefresh}
-                                disabled={isRefreshing}
-                                className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-gray-900 rounded-xl hover:bg-gray-50 transition-colors touch-target"
-                                title="刷新"
-                            >
-                                <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
-                                <span className="text-sm">刷新</span>
-                            </button>
+                            <div className="flex items-center gap-1 bg-gray-50/50 rounded-xl p-1">
+                                <button
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-gray-600 hover:text-gray-900 rounded-lg hover:bg-white transition-colors touch-target"
+                                    title="刷新"
+                                >
+                                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+                                    <span className="text-sm">刷新</span>
+                                </button>
+                                <button
+                                    onClick={() => setShowAISettings(true)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 text-purple-600 hover:text-purple-700 rounded-lg hover:bg-white transition-colors touch-target"
+                                    title="AI 设置"
+                                >
+                                    <Settings2 className="w-4 h-4" />
+                                    <span className="text-sm">AI</span>
+                                </button>
+                            </div>
                             <LanguageSwitcher />
                             <Link
                                 href="/profile"
@@ -210,6 +225,13 @@ export default function DashboardPage() {
                                 title="刷新"
                             >
                                 <RefreshCw className={`w-4 h-4 text-gray-600 ${isRefreshing ? "animate-spin" : ""}`} />
+                            </button>
+                            <button
+                                onClick={() => setShowAISettings(true)}
+                                className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center hover:bg-purple-100 transition-colors icon-button"
+                                title="AI 设置"
+                            >
+                                <Settings2 className="w-4 h-4 text-purple-600" />
                             </button>
                             <LanguageSwitcher />
                             <button
