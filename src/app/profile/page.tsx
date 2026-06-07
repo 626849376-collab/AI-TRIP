@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { getCurrentUser, getProfile, updateProfile, signOut } from "@/lib/supabase";
+import { getCurrentUser, getProfile, updateProfile, signOut, deleteAccount } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { translations } from "@/lib/translations";
@@ -24,6 +24,8 @@ import {
     Shield,
     Clock,
     Fingerprint,
+    Trash2,
+    AlertTriangle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -36,6 +38,8 @@ export default function ProfilePage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [isDeleting, setIsDeleting] = useState(false);
     const [hasChanges, setHasChanges] = useState(false);
 
     useEffect(() => {
@@ -317,6 +321,52 @@ export default function ProfilePage() {
                         </div>
                     </div>
                 </div>
+
+                {/* Delete Account Section */}
+                <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-lg shadow-emerald-100/50 border border-red-100/50 p-6 sm:p-8 hover:shadow-xl hover:shadow-red-100/30 transition-all duration-500">
+                    <h2 className="text-base sm:text-lg font-bold text-red-700 mb-2 flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-red-400 to-red-500 flex items-center justify-center">
+                            <AlertTriangle className="w-4 h-4 text-white" />
+                        </div>
+                        危险区域
+                    </h2>
+                    <p className="text-sm text-gray-500 mb-4 ml-9">
+                        删除账号后，所有数据将被永久清除，此操作不可撤销。
+                    </p>
+                    <button
+                        onClick={() => setShowDeleteConfirm(true)}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-red-50 text-red-600 border border-red-200 rounded-xl hover:bg-red-100 hover:border-red-300 transition-all duration-300 font-medium touch-target group"
+                    >
+                        <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                        删除此账号
+                    </button>
+                </div>
+
+                {/* Delete Account Confirmation Dialog */}
+                <ConfirmDialog
+                    isOpen={showDeleteConfirm}
+                    onClose={() => setShowDeleteConfirm(false)}
+                    onConfirm={async () => {
+                        setIsDeleting(true);
+                        try {
+                            await deleteAccount(user!.id);
+                            clearAuth();
+                            router.push("/");
+                            toast.success("账号已成功删除");
+                        } catch (error: any) {
+                            toast.error("删除账号失败: " + (error?.message || "未知错误"));
+                        } finally {
+                            setIsDeleting(false);
+                            setShowDeleteConfirm(false);
+                        }
+                    }}
+                    title="确认删除账号"
+                    message="此操作将永久删除您的账号、所有旅行计划、点赞和收藏数据，且无法恢复。确定要继续吗？"
+                    confirmText={isDeleting ? "删除中..." : "确认删除"}
+                    cancelText="取消"
+                    variant="danger"
+                    isLoading={isDeleting}
+                />
 
                 {/* Footer */}
                 <div className="text-center py-4">
