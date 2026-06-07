@@ -305,12 +305,14 @@ export default function SquarePage() {
                             <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all shadow-sm">
                                 <Plus className="w-4 h-4" /><span className="text-sm">{t.dashboard.createNew}</span>
                             </button>
-                            <button onClick={handleRefresh} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors" title="刷新">
-                                <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} /><span className="text-sm">刷新</span>
-                            </button>
-                            <button onClick={() => setShowAISettings(true)} className="flex items-center gap-2 px-3 py-2 text-purple-600 hover:text-purple-700 rounded-xl hover:bg-purple-50 transition-colors" title="AI 设置">
-                                <Settings2 className="w-4 h-4" /><span className="text-sm">AI</span>
-                            </button>
+                            <div className="flex items-center gap-1 bg-emerald-50/50 rounded-xl p-1">
+                                <button onClick={handleRefresh} disabled={isRefreshing} className="flex items-center gap-1.5 px-3 py-1.5 text-emerald-600 hover:text-emerald-700 rounded-lg hover:bg-white transition-colors" title="刷新">
+                                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} /><span className="text-sm">刷新</span>
+                                </button>
+                                <button onClick={() => setShowAISettings(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-purple-600 hover:text-purple-700 rounded-lg hover:bg-white transition-colors" title="AI 设置">
+                                    <Settings2 className="w-4 h-4" /><span className="text-sm">AI</span>
+                                </button>
+                            </div>
                             <LanguageSwitcher />
                             <Link href="/profile" className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors">
                                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
