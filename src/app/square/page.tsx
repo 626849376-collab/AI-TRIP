@@ -3,22 +3,21 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { supabase, getCurrentUser, getProfile, getPublicTrips, signOut, createTripPlan, saveTripDetails, toggleLike, toggleFavorite, checkIfLiked, checkIfFavorited } from "@/lib/supabase";
+import { getCurrentUser, getProfile, getPublicTrips, signOut, createTripPlan, saveTripDetails, toggleLike, toggleFavorite } from "@/lib/supabase";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useLanguageStore } from "@/store/useLanguageStore";
 import { translations } from "@/lib/translations";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import SkeletonLoader from "@/components/SkeletonLoader";
-import EmptyState from "@/components/EmptyState";
+import AISettings from "@/components/AISettings";
 import { generateTripPlan } from "@/services/ai-service";
 import {
     MapPin, ArrowLeft, Loader2, Heart, Bookmark, Clock, Flame, Star,
-    Search, Grid3X3, List, Globe, Menu, X, User, LogOut, RefreshCw,
-    Sparkles, Plus, Calendar, Wallet, Plane, Train, Bus, Car, ArrowRight,
-    Building2, Home, Hotel, Bed, Check, Leaf, Mountain, Sun, Compass,
-    ChevronDown, Filter, Share2, Eye, MessageCircle, TrendingUp,
-    Award, Zap, Shield, Users,
+    Search, Grid3X3, List, Menu, X, User, LogOut, RefreshCw,
+    Sparkles, Plus, Calendar, Wallet, Plane, Train, Bus, Car,
+    Building2, Home, Hotel, Bed, Check, Leaf, Sun, Compass,
+    Eye, TrendingUp, Users, Settings2,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate } from "@/lib/utils";
@@ -38,6 +37,7 @@ export default function SquarePage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const [showAISettings, setShowAISettings] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [formData, setFormData] = useState({
         departureCity: "", destination: "", startDate: "", endDate: "", budget: "",
@@ -47,21 +47,13 @@ export default function SquarePage() {
     useEffect(() => {
         const init = async () => {
             try {
-                console.log("SquarePage init started");
                 const currentUser = await getCurrentUser();
-                console.log("Current user:", currentUser?.id);
                 if (!currentUser) { router.push("/auth/login"); return; }
                 setUser(currentUser);
                 const userProfile = await getProfile(currentUser.id);
-                console.log("User profile:", userProfile);
                 setProfile(userProfile);
                 await loadTrips();
             } catch (error) {
-                console.error("SquarePage init error:", error);
-                if (error instanceof Error) {
-                    console.error("Error message:", error.message);
-                    console.error("Error stack:", error.stack);
-                }
                 toast.error("加载旅行广场失败");
             } finally {
                 setIsLoading(false);
@@ -72,16 +64,9 @@ export default function SquarePage() {
 
     const loadTrips = async () => {
         try {
-            console.log("Loading trips...");
             const result = await getPublicTrips();
-            console.log("Trips loaded:", result);
             setTrips(result.data || []);
         } catch (error) {
-            console.error("Error loading trips:", error);
-            if (error instanceof Error) {
-                console.error("Error message:", error.message);
-                console.error("Error stack:", error.stack);
-            }
             toast.error("加载行程列表失败");
         }
     };
@@ -96,26 +81,11 @@ export default function SquarePage() {
         try {
             const trip = trips.find((t) => t.id === tripId);
             if (!trip || !user?.id) return;
-
-            console.log("handleLike called for trip:", tripId, "user:", user.id);
-
-            // 调用 toggleLike 函数获取服务器返回的准确状态和计数
             const result = await toggleLike(tripId, user.id);
-            console.log("toggleLike result:", result);
-
-            // 使用服务器返回的准确数据更新 UI
             setTrips((prev) => prev.map((t) =>
-                t.id === tripId ? {
-                    ...t,
-                    is_liked: result.isLiked,
-                    likes_count: result.likesCount
-                } : t
+                t.id === tripId ? { ...t, is_liked: result.isLiked, likes_count: result.likesCount } : t
             ));
         } catch (error: any) {
-            console.error("handleLike error:", error);
-            console.error("Error message:", error?.message);
-            console.error("Error details:", error?.details);
-            console.error("Error hint:", error?.hint);
             toast.error("操作失败: " + (error?.message || "未知错误"));
         }
     };
@@ -124,26 +94,11 @@ export default function SquarePage() {
         try {
             const trip = trips.find((t) => t.id === tripId);
             if (!trip || !user?.id) return;
-
-            console.log("handleFavorite called for trip:", tripId, "user:", user.id);
-
-            // 调用 toggleFavorite 函数获取服务器返回的准确状态和计数
             const result = await toggleFavorite(tripId, user.id);
-            console.log("toggleFavorite result:", result);
-
-            // 使用服务器返回的准确数据更新 UI
             setTrips((prev) => prev.map((t) =>
-                t.id === tripId ? {
-                    ...t,
-                    is_favorited: result.isFavorited,
-                    favorites_count: result.favoritesCount
-                } : t
+                t.id === tripId ? { ...t, is_favorited: result.isFavorited, favorites_count: result.favoritesCount } : t
             ));
         } catch (error: any) {
-            console.error("handleFavorite error:", error);
-            console.error("Error message:", error?.message);
-            console.error("Error details:", error?.details);
-            console.error("Error hint:", error?.hint);
             toast.error("操作失败: " + (error?.message || "未知错误"));
         }
     };
@@ -241,7 +196,8 @@ export default function SquarePage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
-            {/* 创建旅行计划模态框 */}
+            <AISettings isOpen={showAISettings} onClose={() => setShowAISettings(false)} />
+
             {showCreateModal && (
                 <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-10 px-4">
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
@@ -253,7 +209,7 @@ export default function SquarePage() {
                                 </div>
                                 <h2 className="text-lg font-semibold text-gray-900">{t.tripCreate.title}</h2>
                             </div>
-                            <button onClick={() => setShowCreateModal(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-emerald-50 transition-colors icon-button">
+                            <button onClick={() => setShowCreateModal(false)} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-emerald-50 transition-colors">
                                 <X className="w-5 h-5 text-gray-500" />
                             </button>
                         </div>
@@ -296,7 +252,7 @@ export default function SquarePage() {
                                     <label className="block text-sm font-medium text-gray-700 mb-3">{t.tripCreate.interests} <span className="text-emerald-500">*</span></label>
                                     <div className="flex flex-wrap gap-2">
                                         {INTEREST_TAGS.map((tag) => (
-                                            <button key={tag} type="button" onClick={() => toggleInterest(tag)} className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-target ${formData.interests.includes(tag) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-200" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}>
+                                            <button key={tag} type="button" onClick={() => toggleInterest(tag)} className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all ${formData.interests.includes(tag) ? "bg-emerald-500 text-white shadow-sm shadow-emerald-200" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"}`}>
                                                 {formData.interests.includes(tag) && <Check className="w-3 h-3 inline mr-1" />}{tag}
                                             </button>
                                         ))}
@@ -306,7 +262,7 @@ export default function SquarePage() {
                                     <label className="block text-sm font-medium text-gray-700 mb-3">{t.tripCreate.transportPreference}</label>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                                         {TRANSPORT_OPTIONS.map((option) => (
-                                            <button key={option.value} type="button" onClick={() => setFormData((prev) => ({ ...prev, transportPreference: option.value }))} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all touch-target ${formData.transportPreference === option.value ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/50"}`}>
+                                            <button key={option.value} type="button" onClick={() => setFormData((prev) => ({ ...prev, transportPreference: option.value }))} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all ${formData.transportPreference === option.value ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/50"}`}>
                                                 {transportIcons[option.value]}{option.label}
                                             </button>
                                         ))}
@@ -316,13 +272,13 @@ export default function SquarePage() {
                                     <label className="block text-sm font-medium text-gray-700 mb-3">{t.tripCreate.accommodationPreference}</label>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                                         {ACCOMMODATION_OPTIONS.map((option) => (
-                                            <button key={option.value} type="button" onClick={() => setFormData((prev) => ({ ...prev, accommodationPreference: option.value }))} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all touch-target ${formData.accommodationPreference === option.value ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/50"}`}>
+                                            <button key={option.value} type="button" onClick={() => setFormData((prev) => ({ ...prev, accommodationPreference: option.value }))} className={`flex items-center justify-center gap-2 px-3 sm:px-4 py-3 rounded-lg border text-xs sm:text-sm font-medium transition-all ${formData.accommodationPreference === option.value ? "border-emerald-500 bg-emerald-50 text-emerald-700" : "border-gray-200 text-gray-600 hover:border-emerald-200 hover:bg-emerald-50/50"}`}>
                                                 {accommodationIcons[option.value]}{option.label}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                                <button type="submit" disabled={isGenerating} className="w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 touch-target">
+                                <button type="submit" disabled={isGenerating} className="w-full bg-gradient-to-r from-emerald-500 to-green-600 text-white py-3 rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                                     {isGenerating ? (<><Loader2 className="w-5 h-5 animate-spin" />{t.tripCreate.generating}</>) : (<><Sparkles className="w-5 h-5" />{t.tripCreate.generate}</>)}
                                 </button>
                             </form>
@@ -333,11 +289,10 @@ export default function SquarePage() {
 
             <ConfirmDialog isOpen={showSignOutConfirm} onClose={() => setShowSignOutConfirm(false)} onConfirm={handleSignOut} title="确认退出登录" message="退出登录后需要重新登录才能使用所有功能。" confirmText="确认退出" cancelText="取消" variant="warning" />
 
-            {/* 导航栏 */}
             <nav className="bg-white/80 backdrop-blur-xl border-b border-emerald-100/50 sticky top-0 z-40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
-                        <Link href="/dashboard" className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-colors touch-target">
+                        <Link href="/dashboard" className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 transition-colors">
                             <ArrowLeft className="w-5 h-5" /><span className="hidden sm:inline font-medium">{t.trip.back}</span>
                         </Link>
                         <div className="flex items-center gap-2">
@@ -347,46 +302,55 @@ export default function SquarePage() {
                             <span className="font-bold text-lg bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">{t.square.title}</span>
                         </div>
                         <div className="hidden md:flex items-center gap-3">
-                            <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all touch-target shadow-sm">
+                            <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all shadow-sm">
                                 <Plus className="w-4 h-4" /><span className="text-sm">{t.dashboard.createNew}</span>
                             </button>
-                            <button onClick={handleRefresh} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors touch-target" title="刷新">
+                            <button onClick={handleRefresh} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors" title="刷新">
                                 <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} /><span className="text-sm">刷新</span>
                             </button>
+                            <button onClick={() => setShowAISettings(true)} className="flex items-center gap-2 px-3 py-2 text-purple-600 hover:text-purple-700 rounded-xl hover:bg-purple-50 transition-colors" title="AI 设置">
+                                <Settings2 className="w-4 h-4" /><span className="text-sm">AI</span>
+                            </button>
                             <LanguageSwitcher />
-                            <Link href="/profile" className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors touch-target">
+                            <Link href="/profile" className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors">
                                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
                                     <User className="w-3.5 h-3.5 text-white" />
                                 </div>
                                 <span className="text-sm font-medium">{profile?.name || t.dashboard.user}</span>
                             </Link>
-                            <button onClick={() => setShowSignOutConfirm(true)} className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-red-500 rounded-xl hover:bg-red-50 transition-colors touch-target">
+                            <button onClick={() => setShowSignOutConfirm(true)} className="flex items-center gap-2 px-3 py-2 text-gray-500 hover:text-red-500 rounded-xl hover:bg-red-50 transition-colors">
                                 <LogOut className="w-4 h-4" /><span className="text-sm">{t.dashboard.signOut}</span>
                             </button>
                         </div>
                         <div className="flex items-center gap-2 md:hidden">
-                            <button onClick={() => setShowCreateModal(true)} className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white shadow-sm icon-button" title={t.dashboard.createNew}>
+                            <button onClick={() => setShowCreateModal(true)} className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white shadow-sm" title={t.dashboard.createNew}>
                                 <Plus className="w-5 h-5" />
                             </button>
-                            <button onClick={handleRefresh} disabled={isRefreshing} className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 transition-colors icon-button" title="刷新">
+                            <button onClick={handleRefresh} disabled={isRefreshing} className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 transition-colors" title="刷新">
                                 <RefreshCw className={`w-4 h-4 text-emerald-600 ${isRefreshing ? "animate-spin" : ""}`} />
                             </button>
+                            <button onClick={() => setShowAISettings(true)} className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center hover:bg-purple-100 transition-colors" title="AI 设置">
+                                <Settings2 className="w-4 h-4 text-purple-600" />
+                            </button>
                             <LanguageSwitcher />
-                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 transition-colors icon-button">
+                            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 transition-colors">
                                 {isMenuOpen ? <X className="w-5 h-5 text-emerald-600" /> : <Menu className="w-5 h-5 text-emerald-600" />}
                             </button>
                         </div>
                     </div>
                     {isMenuOpen && (
-                        <div className="md:hidden py-4 border-t border-emerald-100 animate-fade-in">
+                        <div className="md:hidden py-4 border-t border-emerald-100">
                             <div className="flex flex-col gap-2">
-                                <Link href="/profile" className="flex items-center gap-2 text-emerald-600 py-3 px-2 rounded-xl hover:bg-emerald-50 transition-colors touch-target" onClick={() => setIsMenuOpen(false)}>
+                                <Link href="/profile" className="flex items-center gap-2 text-emerald-600 py-3 px-2 rounded-xl hover:bg-emerald-50 transition-colors" onClick={() => setIsMenuOpen(false)}>
                                     <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
                                         <User className="w-3.5 h-3.5 text-white" />
                                     </div>
                                     <span className="font-medium">{profile?.name || t.dashboard.user}</span>
                                 </Link>
-                                <button onClick={() => { setIsMenuOpen(false); setShowSignOutConfirm(true); }} className="flex items-center gap-2 text-red-500 py-3 px-2 rounded-xl hover:bg-red-50 transition-colors touch-target">
+                                <button onClick={() => { setIsMenuOpen(false); setShowAISettings(true); }} className="flex items-center gap-2 text-purple-600 py-3 px-2 rounded-xl hover:bg-purple-50 transition-colors">
+                                    <Settings2 className="w-5 h-5" /><span>AI 设置</span>
+                                </button>
+                                <button onClick={() => { setIsMenuOpen(false); setShowSignOutConfirm(true); }} className="flex items-center gap-2 text-red-500 py-3 px-2 rounded-xl hover:bg-red-50 transition-colors">
                                     <LogOut className="w-5 h-5" /><span>{t.dashboard.signOut}</span>
                                 </button>
                             </div>
@@ -395,63 +359,33 @@ export default function SquarePage() {
                 </div>
             </nav>
 
-            {/* 主内容 */}
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 page-enter">
-                {/* 横幅 - 绿色主题 */}
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
                 <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-500 via-green-500 to-emerald-600 p-6 sm:p-8 mb-4 sm:mb-6 shadow-lg shadow-emerald-200/30">
-                    {/* 装饰元素 */}
                     <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
                     <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-300/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl" />
-                    <div className="absolute top-1/2 left-1/4 w-32 h-32 bg-yellow-300/10 rounded-full blur-2xl" />
-
-                    {/* 叶子装饰 */}
                     <div className="absolute top-4 right-8 opacity-10">
                         <Leaf className="w-16 h-16 text-white" />
                     </div>
-                    <div className="absolute bottom-4 left-12 opacity-10 rotate-45">
-                        <Leaf className="w-12 h-12 text-white" />
-                    </div>
-
                     <div className="relative z-10">
-                        <div className="flex items-center gap-3 mb-3">
-                            <div className="px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full">
-                                <span className="text-white/90 text-xs font-medium flex items-center gap-1">
-                                    <Sun className="w-3.5 h-3.5" /> 探索世界
-                                </span>
-                            </div>
-                        </div>
-                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2 tracking-tight">
-                            {t.square.title}
-                        </h1>
-                        <p className="text-white/70 text-sm sm:text-base max-w-lg leading-relaxed">
-                            发现来自全球旅行者的精彩行程，获取灵感，规划你的下一次冒险！
-                        </p>
+                        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{t.square.title}</h1>
+                        <p className="text-white/70 text-sm sm:text-base max-w-lg">发现来自全球旅行者的精彩行程，获取灵感，规划你的下一次冒险！</p>
                         <div className="flex items-center gap-4 mt-4">
                             <div className="flex items-center gap-1.5 text-white/60 text-xs">
-                                <Users className="w-3.5 h-3.5" />
-                                <span>{trips.length} 个行程</span>
+                                <Users className="w-3.5 h-3.5" /><span>{trips.length} 个行程</span>
                             </div>
                             <div className="flex items-center gap-1.5 text-white/60 text-xs">
-                                <TrendingUp className="w-3.5 h-3.5" />
-                                <span>实时更新</span>
+                                <TrendingUp className="w-3.5 h-3.5" /><span>实时更新</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                {/* 搜索和筛选 */}
                 <div className="mb-4 sm:mb-6 space-y-3 sm:space-y-4">
-                    <div className="relative group">
-                        <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 group-focus-within:text-emerald-500 transition-colors" />
-                        <input
-                            type="text"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            placeholder={t.square.search}
-                            className="w-full pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-white rounded-xl border border-emerald-100 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100 outline-none transition-all text-sm sm:text-base shadow-sm"
-                        />
+                    <div className="relative">
+                        <Search className="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
+                        <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t.square.search} className="w-full pl-9 sm:pl-12 pr-4 py-2.5 sm:py-3 bg-white rounded-xl border border-emerald-100 focus:border-emerald-300 focus:ring-2 focus:ring-emerald-100 outline-none transition-all text-sm sm:text-base shadow-sm" />
                         {searchQuery && (
-                            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-500 transition-colors icon-button">
+                            <button onClick={() => setSearchQuery("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-emerald-500 transition-colors">
                                 <X className="w-4 h-4" />
                             </button>
                         )}
@@ -461,39 +395,23 @@ export default function SquarePage() {
                             {tabs.map((tab) => {
                                 const Icon = tab.icon;
                                 return (
-                                    <button
-                                        key={tab.id}
-                                        onClick={() => setActiveTab(tab.id)}
-                                        className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap touch-target ${activeTab === tab.id
-                                            ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-sm shadow-emerald-200"
-                                            : "text-gray-500 hover:text-emerald-600 hover:bg-emerald-50"
-                                            }`}
-                                    >
+                                    <button key={tab.id} onClick={() => setActiveTab(tab.id)} className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap ${activeTab === tab.id ? "bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-sm shadow-emerald-200" : "text-gray-500 hover:text-emerald-600 hover:bg-emerald-50"}`}>
                                         <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />{tab.label}
                                     </button>
                                 );
                             })}
                         </div>
                         <div className="flex items-center gap-1 bg-white rounded-xl p-1.5 border border-emerald-100 shadow-sm">
-                            <button
-                                onClick={() => setViewMode("grid")}
-                                className={`p-2 rounded-lg transition-colors icon-button ${viewMode === "grid" ? "bg-emerald-100 text-emerald-600" : "text-gray-400 hover:text-emerald-500 hover:bg-emerald-50"}`}
-                                title="网格视图"
-                            >
+                            <button onClick={() => setViewMode("grid")} className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-emerald-100 text-emerald-600" : "text-gray-400 hover:text-emerald-500 hover:bg-emerald-50"}`} title="网格视图">
                                 <Grid3X3 className="w-4 h-4" />
                             </button>
-                            <button
-                                onClick={() => setViewMode("list")}
-                                className={`p-2 rounded-lg transition-colors icon-button ${viewMode === "list" ? "bg-emerald-100 text-emerald-600" : "text-gray-400 hover:text-emerald-500 hover:bg-emerald-50"}`}
-                                title="列表视图"
-                            >
+                            <button onClick={() => setViewMode("list")} className={`p-2 rounded-lg transition-colors ${viewMode === "list" ? "bg-emerald-100 text-emerald-600" : "text-gray-400 hover:text-emerald-500 hover:bg-emerald-50"}`} title="列表视图">
                                 <List className="w-4 h-4" />
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* 行程卡片 */}
                 {sortedTrips.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-16 sm:py-20">
                         <div className="w-20 h-20 rounded-2xl bg-emerald-50 flex items-center justify-center mb-4">
@@ -502,12 +420,8 @@ export default function SquarePage() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-2">{t.square.noTrips}</h3>
                         <p className="text-sm text-gray-500 mb-6 text-center max-w-sm">{t.square.noTripsDesc}</p>
                         <div className="flex items-center gap-3">
-                            <button onClick={() => setShowCreateModal(true)} className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all touch-target text-sm">
-                                创建旅行计划
-                            </button>
-                            <button onClick={handleRefresh} className="px-5 py-2.5 border border-emerald-200 text-emerald-600 rounded-lg font-medium hover:bg-emerald-50 transition-all touch-target text-sm">
-                                刷新试试
-                            </button>
+                            <button onClick={() => setShowCreateModal(true)} className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all text-sm">创建旅行计划</button>
+                            <button onClick={handleRefresh} className="px-5 py-2.5 border border-emerald-200 text-emerald-600 rounded-lg font-medium hover:bg-emerald-50 transition-all text-sm">刷新试试</button>
                         </div>
                     </div>
                 ) : (
@@ -518,39 +432,22 @@ export default function SquarePage() {
                                 {searchQuery && <span>（搜索"<span className="text-emerald-600">{searchQuery}</span>"）</span>}
                             </p>
                         </div>
-                        <div className={viewMode === "grid"
-                            ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 stagger-enter"
-                            : "space-y-3 sm:space-y-4 stagger-enter"
-                        }>
-                            {sortedTrips.map((trip, index) => (
-                                <div
-                                    key={trip.id}
-                                    className={`group bg-white rounded-2xl border border-emerald-100/80 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100/30 transition-all duration-300 overflow-hidden ${viewMode === "list" ? "flex flex-col sm:flex-row" : ""
-                                        }`}
-                                >
-                                    {/* 顶部渐变条 */}
-                                    <div className={`bg-gradient-to-r from-emerald-400 to-green-500 ${viewMode === "list" ? "w-full sm:w-2 h-2 sm:h-auto" : "h-2"
-                                        }`} />
-
+                        <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" : "space-y-3 sm:space-y-4"}>
+                            {sortedTrips.map((trip) => (
+                                <div key={trip.id} className={`group bg-white rounded-2xl border border-emerald-100/80 hover:border-emerald-200 hover:shadow-xl hover:shadow-emerald-100/30 transition-all duration-300 overflow-hidden ${viewMode === "list" ? "flex flex-col sm:flex-row" : ""}`}>
+                                    <div className={`bg-gradient-to-r from-emerald-400 to-green-500 ${viewMode === "list" ? "w-full sm:w-2 h-2 sm:h-auto" : "h-2"}`} />
                                     <div className={`p-4 sm:p-5 ${viewMode === "list" ? "flex-1" : ""}`}>
-                                        {/* 用户信息和标题 */}
                                         <div className="flex items-start justify-between mb-3">
                                             <div className="min-w-0 flex-1">
-                                                <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-emerald-600 transition-colors">
-                                                    {trip.title}
-                                                </h3>
+                                                <h3 className="font-semibold text-gray-900 text-sm sm:text-base truncate group-hover:text-emerald-600 transition-colors">{trip.title}</h3>
                                             </div>
                                             <div className="flex items-center gap-1.5 flex-shrink-0">
                                                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
                                                     <User className="w-3 h-3 text-white" />
                                                 </div>
-                                                <span className="text-xs text-gray-500 truncate max-w-[80px]">
-                                                    {trip.user_profiles?.name || "匿名用户"}
-                                                </span>
+                                                <span className="text-xs text-gray-500 truncate max-w-[80px]">{trip.user_profiles?.name || "匿名用户"}</span>
                                             </div>
                                         </div>
-
-                                        {/* 目的地和日期 */}
                                         <div className="flex items-center gap-2 mb-3">
                                             <MapPin className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
                                             <span className="text-xs text-gray-600 truncate">{trip.destination}</span>
@@ -558,8 +455,6 @@ export default function SquarePage() {
                                             <Clock className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
                                             <span className="text-xs text-gray-500">{formatDate(trip.created_at)}</span>
                                         </div>
-
-                                        {/* 预算和天数 */}
                                         <div className="flex items-center gap-3 mb-3">
                                             <div className="flex items-center gap-1 px-2 py-1 bg-emerald-50 rounded-md">
                                                 <Wallet className="w-3 h-3 text-emerald-500" />
@@ -570,27 +465,16 @@ export default function SquarePage() {
                                                 <span className="text-xs font-medium text-blue-700">{trip.days_count || 3}天</span>
                                             </div>
                                         </div>
-
-                                        {/* 操作按钮 */}
                                         <div className="flex items-center gap-2 pt-3 border-t border-emerald-50">
-                                            <Link
-                                                href={`/trip/${trip.id}`}
-                                                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors text-xs font-medium touch-target"
-                                            >
+                                            <Link href={`/trip/${trip.id}`} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors text-xs font-medium">
                                                 <Eye className="w-3.5 h-3.5" />
                                                 {t.square.viewTrip}
                                             </Link>
-                                            <button
-                                                onClick={() => handleLike(trip.id)}
-                                                className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors text-xs font-medium touch-target ${trip.is_liked ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-500"}`}
-                                            >
+                                            <button onClick={() => handleLike(trip.id)} className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors text-xs font-medium ${trip.is_liked ? "bg-red-50 text-red-600" : "bg-gray-50 text-gray-500 hover:bg-red-50 hover:text-red-500"}`}>
                                                 <Heart className={`w-3.5 h-3.5 ${trip.is_liked ? "fill-current" : ""}`} />
                                                 {trip.likes_count || 0}
                                             </button>
-                                            <button
-                                                onClick={() => handleFavorite(trip.id)}
-                                                className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors text-xs font-medium touch-target ${trip.is_favorited ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-gray-500 hover:bg-amber-50 hover:text-amber-500"}`}
-                                            >
+                                            <button onClick={() => handleFavorite(trip.id)} className={`flex items-center gap-1 px-3 py-2 rounded-lg transition-colors text-xs font-medium ${trip.is_favorited ? "bg-amber-50 text-amber-600" : "bg-gray-50 text-gray-500 hover:bg-amber-50 hover:text-amber-500"}`}>
                                                 <Bookmark className={`w-3.5 h-3.5 ${trip.is_favorited ? "fill-current" : ""}`} />
                                                 {trip.favorites_count || 0}
                                             </button>
