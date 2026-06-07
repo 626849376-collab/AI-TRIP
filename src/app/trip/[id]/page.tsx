@@ -114,32 +114,185 @@ export default function TripDetailPage() {
         }
     };
 
-    const handleExportPDF = async () => {
-        try {
-            const toastId = toast.loading("正在生成 PDF...");
-            
-            // Dynamically import @react-pdf/renderer to avoid SSR issues
-            const { pdf } = await import("@react-pdf/renderer");
-            const { TripPDFDocument } = await import("@/components/TripPDFDocument");
-            
-            const blob = await pdf(
-                <TripPDFDocument tripPlan={tripPlan} tripDetails={tripDetails} />
-            ).toBlob();
-            
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.href = url;
-            link.download = `${tripPlan?.destination || "旅行"}计划_${tripPlan?.title || ""}.pdf`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            
-            toast.success("导出成功！", { id: toastId });
-        } catch (error) {
-            console.error("Failed to export PDF:", error);
-            toast.error("导出 PDF 失败，请稍后重试");
+    const handleExportPDF = () => {
+        const plan = tripPlan;
+        const details = tripDetails;
+        if (!plan) return;
+
+        const formatBudget = (n: number) => `¥${Number(n || 0).toLocaleString("zh-CN")}`;
+
+        const daysHTML = details.map((day: any) => {
+            const c = day.content || {};
+            const acts: any[] = Array.isArray(c.activities) ? c.activities : [];
+            const meals = c.meals || {};
+            const budget = c.budget || {};
+
+            const actsHTML = acts.map((a: any) => `
+                <div class="act-row">
+                    <span class="act-time">${a.time || ""}</span>
+                    <div class="act-body">
+                        <div class="act-name">${a.name || ""}</div>
+                        ${a.description ? `<div class="act-desc">${a.description}</div>` : ""}
+                        <div class="act-meta">
+                            ${a.location ? `<span>📍 ${a.location}</span>` : ""}
+                            ${a.duration ? `<span>⏱ ${a.duration}</span>` : ""}
+                            ${Number(a.cost) > 0 ? `<span>¥${a.cost}</span>` : ""}
+                        </div>
+                    </div>
+                </div>`).join("");
+
+            const tipsHTML = Array.isArray(c.tips) && c.tips.length > 0
+                ? `<div class="tips-block"><strong>💡 贴士</strong><ul>${c.tips.map((t: string) => `<li>${t}</li>`).join("")}</ul></div>`
+                : "";
+
+            return `
+            <div class="day-card">
+                <div class="day-header">
+                    <span class="day-title">第 ${day.day_number} 天</span>
+                    <span class="day-date">${c.date || ""}</span>
+                </div>
+                ${actsHTML}
+                <div class="sub-block meals-block">
+                    <strong>餐食安排</strong>
+                    <div class="meals-row">
+                        <span>早：${meals.breakfast || "自理"}</span>
+                        <span>午：${meals.lunch || "自理"}</span>
+                        <span>晚：${meals.dinner || "自理"}</span>
+                    </div>
+                </div>
+                ${c.hotel ? `<div class="sub-block">🏨 <strong>住宿：</strong>${c.hotel}</div>` : ""}
+                <div class="budget-row">
+                    <span>交通 ${formatBudget(budget.transportation)}</span>
+                    <span>餐饮 ${formatBudget(budget.meals)}</span>
+                    <span>门票 ${formatBudget(budget.tickets)}</span>
+                    <span>购物 ${formatBudget(budget.shopping)}</span>
+                </div>
+                ${tipsHTML}
+            </div>`;
+        }).join("");
+
+        // Aggregate totals
+        let trans = 0, mealsT = 0, ticketsT = 0, shoppingT = 0;
+        details.forEach((d: any) => {
+            const b = d.content?.budget || {};
+            trans     += Number(b.transportation || 0);
+            mealsT    += Number(b.meals || 0);
+            ticketsT  += Number(b.tickets || 0);
+            shoppingT += Number(b.shopping || 0);
+        });
+        const grand = trans + mealsT + ticketsT + shoppingT;
+
+        const html = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>${plan.title || "旅行计划"}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: "PingFang SC","Microsoft YaHei","Hiragino Sans GB",sans-serif; color: #1f2937; font-size: 13px; line-height: 1.7; }
+  .page { max-width: 780px; margin: 0 auto; padding: 32px; }
+
+  /* Cover */
+  .cover { text-align: center; padding: 60px 0 40px; border-bottom: 2px solid #059669; margin-bottom: 32px; }
+  .cover-bar { width: 60px; height: 5px; background: #059669; border-radius: 3px; margin: 0 auto 16px; }
+  .cover-title { font-size: 26px; font-weight: 700; color: #059669; margin-bottom: 6px; }
+  .cover-sub { font-size: 14px; color: #6b7280; margin-bottom: 28px; }
+  .cover-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-width: 380px; margin: 0 auto; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; }
+  .cover-item { display: flex; justify-content: space-between; font-size: 13px; }
+  .cover-label { color: #6b7280; }
+  .cover-value { font-weight: 600; color: #111827; }
+
+  /* Section */
+  .section-title { font-size: 16px; font-weight: 700; color: #059669; border-bottom: 2px solid #059669; padding-bottom: 6px; margin: 28px 0 16px; }
+
+  /* Day card */
+  .day-card { border: 1px solid #e5e7eb; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+  .day-header { display: flex; justify-content: space-between; align-items: center; background: #ecfdf5; border-left: 4px solid #059669; padding: 8px 14px; }
+  .day-title { font-weight: 700; color: #047857; font-size: 14px; }
+  .day-date { font-size: 12px; color: #047857; }
+
+  /* Activity */
+  .act-row { display: flex; gap: 10px; padding: 8px 14px; border-bottom: 1px solid #f3f4f6; }
+  .act-time { min-width: 52px; font-weight: 600; color: #059669; font-size: 12px; padding-top: 2px; }
+  .act-body { flex: 1; }
+  .act-name { font-weight: 600; color: #111827; }
+  .act-desc { font-size: 12px; color: #4b5563; margin-top: 2px; }
+  .act-meta { display: flex; gap: 12px; font-size: 11px; color: #9ca3af; margin-top: 3px; }
+
+  /* Sub blocks */
+  .sub-block { padding: 8px 14px; background: #f9fafb; border-top: 1px solid #f3f4f6; font-size: 12px; color: #374151; }
+  .meals-block .meals-row { display: flex; gap: 20px; margin-top: 4px; color: #4b5563; }
+  .budget-row { display: flex; gap: 16px; padding: 6px 14px; background: #f0fdf4; font-size: 12px; color: #047857; border-top: 1px solid #d1fae5; }
+  .tips-block { padding: 8px 14px; background: #fffbeb; border-top: 1px solid #fef3c7; font-size: 12px; }
+  .tips-block ul { margin-top: 4px; padding-left: 16px; color: #4b5563; }
+  .tips-block li { margin-bottom: 2px; }
+
+  /* Budget summary */
+  .budget-table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+  .budget-table th, .budget-table td { padding: 8px 12px; border: 1px solid #e5e7eb; font-size: 13px; }
+  .budget-table th { background: #ecfdf5; color: #047857; text-align: left; }
+  .budget-table .total-row { background: #f0fdf4; font-weight: 700; }
+  .budget-table td:last-child { text-align: right; }
+
+  /* Footer */
+  .footer { text-align: center; font-size: 11px; color: #9ca3af; margin-top: 40px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+
+  @media print {
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .day-card { page-break-inside: avoid; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <!-- Cover -->
+  <div class="cover">
+    <div class="cover-bar"></div>
+    <div class="cover-title">${plan.title || "旅行规划"}</div>
+    <div class="cover-sub">AI 迷你旅行规划师 · 生成方案</div>
+    <div class="cover-grid">
+      <div class="cover-item"><span class="cover-label">目的地</span><span class="cover-value">${plan.destination || "-"}</span></div>
+      <div class="cover-item"><span class="cover-label">预算</span><span class="cover-value">${formatBudget(plan.budget)}</span></div>
+      <div class="cover-item"><span class="cover-label">出发</span><span class="cover-value">${plan.start_date || "-"}</span></div>
+      <div class="cover-item"><span class="cover-label">返回</span><span class="cover-value">${plan.end_date || "-"}</span></div>
+    </div>
+  </div>
+
+  <!-- Itinerary -->
+  <div class="section-title">📅 详细日程安排</div>
+  ${daysHTML}
+
+  <!-- Budget -->
+  <div class="section-title">💰 预算明细分析</div>
+  <table class="budget-table">
+    <thead><tr><th>消费类别</th><th>预估费用</th></tr></thead>
+    <tbody>
+      <tr><td>交通出行</td><td>${formatBudget(trans)}</td></tr>
+      <tr><td>餐饮美食</td><td>${formatBudget(mealsT)}</td></tr>
+      <tr><td>景区门票</td><td>${formatBudget(ticketsT)}</td></tr>
+      <tr><td>休闲购物</td><td>${formatBudget(shoppingT)}</td></tr>
+      <tr class="total-row"><td>总计预估消费</td><td>${formatBudget(grand)}</td></tr>
+    </tbody>
+  </table>
+
+  <div class="footer">生成时间：${new Date().toLocaleDateString("zh-CN")} &nbsp;|&nbsp; AI Mini Travel Planner</div>
+</div>
+
+<script>
+  window.onload = function() { window.print(); }
+</script>
+</body>
+</html>`;
+
+        const printWin = window.open("", "_blank", "width=900,height=700");
+        if (!printWin) {
+            toast.error("请允许浏览器弹出窗口以导出 PDF");
+            return;
         }
+        printWin.document.write(html);
+        printWin.document.close();
+        toast.success("请在打印对话框中选择「另存为 PDF」");
     };
 
     if (isLoading) {
