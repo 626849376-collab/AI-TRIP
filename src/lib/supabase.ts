@@ -456,10 +456,10 @@ export async function getPublicTrips(page: number = 1, pageSize: number = 12) {
     const to = from + pageSize - 1;
 
     // First get the trips without the join to avoid RLS issues
-    // Note: is_public column may not exist in the database, so we skip that filter
     const { data: trips, error: tripsError, count } = await supabase
         .from("trip_plans")
         .select("*", { count: "exact" })
+        .eq("is_public", true)
         .eq("is_deleted", false)
         .order("created_at", { ascending: false })
         .range(from, to);

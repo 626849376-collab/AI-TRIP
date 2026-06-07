@@ -87,6 +87,7 @@ export default function TripDetailPage() {
                     return;
                 }
                 setTripPlan(plan);
+                setIsPublic(plan.is_public || false);
 
                 const details = await getTripDetails(params.id as string);
                 setTripDetails(details);
@@ -159,26 +160,30 @@ export default function TripDetailPage() {
                             </span>
                         </div>
                         <div className="flex items-center gap-1 sm:gap-2">
-                            <button
-                                onClick={() => setShowShareModal(true)}
-                                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-colors rounded-xl hover:bg-indigo-50 icon-button"
-                                title="分享行程"
-                            >
-                                <Share2 className="w-5 h-5" />
-                            </button>
+                            {user?.id === tripPlan?.user_id && (
+                                <>
+                                    <button
+                                        onClick={() => setShowShareModal(true)}
+                                        className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-colors rounded-xl hover:bg-indigo-50 icon-button"
+                                        title="分享行程"
+                                    >
+                                        <Share2 className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={() => setDeleteConfirm(true)}
+                                        className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 icon-button"
+                                        title={t.trip.delete}
+                                    >
+                                        <Trash2 className="w-5 h-5" />
+                                    </button>
+                                </>
+                            )}
                             <button
                                 onClick={handleExportPDF}
                                 className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-primary-600 transition-colors rounded-xl hover:bg-primary-50 icon-button"
                                 title={t.trip.exportPDF}
                             >
                                 <Download className="w-5 h-5" />
-                            </button>
-                            <button
-                                onClick={() => setDeleteConfirm(true)}
-                                className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors rounded-xl hover:bg-red-50 icon-button"
-                                title={t.trip.delete}
-                            >
-                                <Trash2 className="w-5 h-5" />
                             </button>
                             <LanguageSwitcher />
                         </div>
