@@ -114,8 +114,32 @@ export default function TripDetailPage() {
         }
     };
 
-    const handleExportPDF = () => {
-        toast.success(t.trip.exportComingSoon);
+    const handleExportPDF = async () => {
+        try {
+            const toastId = toast.loading("正在生成 PDF...");
+            
+            // Dynamically import @react-pdf/renderer to avoid SSR issues
+            const { pdf } = await import("@react-pdf/renderer");
+            const { TripPDFDocument } = await import("@/components/TripPDFDocument");
+            
+            const blob = await pdf(
+                <TripPDFDocument tripPlan={tripPlan} tripDetails={tripDetails} />
+            ).toBlob();
+            
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `${tripPlan?.destination || "旅行"}计划_${tripPlan?.title || ""}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            toast.success("导出成功！", { id: toastId });
+        } catch (error) {
+            console.error("Failed to export PDF:", error);
+            toast.error("导出 PDF 失败，请稍后重试");
+        }
     };
 
     if (isLoading) {
