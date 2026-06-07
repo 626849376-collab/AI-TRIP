@@ -277,34 +277,121 @@ export default function DashboardPage() {
 
             {/* Main Content */}
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 page-enter">
-                {/* Welcome Section */}
-                <div className="bg-white rounded-2xl shadow-sm border p-4 sm:p-6 mb-6 sm:mb-8">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                        <div>
-                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
-                                {t.dashboard.welcome.replace("{name}", profile?.name || t.dashboard.traveler)}
-                            </h1>
-                            <p className="text-sm sm:text-base text-gray-600 mt-1">
-                                {t.dashboard.welcomeDesc}
-                            </p>
+                {/* Welcome Hero Section */}
+                <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-emerald-500 via-green-500 to-emerald-600 p-6 sm:p-8 mb-6 sm:mb-8 shadow-lg shadow-emerald-200/30">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-emerald-300/20 rounded-full translate-y-1/2 -translate-x-1/4 blur-3xl" />
+                    <div className="relative z-10">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <div>
+                                <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                                    {t.dashboard.welcome.replace("{name}", profile?.name || t.dashboard.traveler)}
+                                </h1>
+                                <p className="text-white/70 text-sm sm:text-base mt-1">
+                                    {t.dashboard.welcomeDesc}
+                                </p>
+                            </div>
+                            <Link
+                                href="/square"
+                                className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 bg-white text-emerald-700 rounded-xl font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto justify-center touch-target"
+                            >
+                                <Plus className="w-5 h-5" />
+                                <span>{t.dashboard.createNew}</span>
+                            </Link>
                         </div>
-                        <Link
-                            href="/square"
-                            className="gradient-primary text-white px-5 sm:px-6 py-2.5 rounded-lg font-medium hover:opacity-90 transition-opacity inline-flex items-center gap-2 w-full sm:w-auto justify-center touch-target shadow-sm hover:shadow-md"
-                        >
-                            <Plus className="w-5 h-5" />
-                            {t.dashboard.createNew}
-                        </Link>
+                        {/* Stats row */}
+                        <div className="flex items-center gap-4 sm:gap-6 mt-4 sm:mt-6 pt-4 sm:pt-6 border-t border-white/10">
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                                    <MapPin className="w-4 h-4 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-white/60">旅行计划</p>
+                                    <p className="text-sm font-semibold text-white">{tripPlans.length}</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+                                    <Globe className="w-4 h-4 text-white" />
+                                </div>
+                                <div>
+                                    <p className="text-xs text-white/60">已发布</p>
+                                    <p className="text-sm font-semibold text-white">{tripPlans.filter(p => p.is_public).length}</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {/* Trip Plans */}
+                {/* Quick Actions */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-6 sm:mb-8">
+                    <Link
+                        href="/square"
+                        className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-0.5 transition-all duration-300 hover:shadow-lg hover:shadow-indigo-200/30"
+                    >
+                        <div className="relative bg-white rounded-2xl p-5 sm:p-6 h-full">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-indigo-100/50 to-transparent rounded-bl-full" />
+                            <div className="relative z-10 flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-200 flex-shrink-0">
+                                    <Globe className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-base sm:text-lg font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                                        {t.square.title}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">{t.square.subtitle}</p>
+                                    <div className="flex flex-wrap gap-1.5 mt-3">
+                                        <span className="inline-flex items-center px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded-full text-xs">{t.square.popular}</span>
+                                        <span className="inline-flex items-center px-2 py-0.5 bg-purple-50 text-purple-700 rounded-full text-xs">{t.square.latest}</span>
+                                    </div>
+                                </div>
+                                <div className="flex-shrink-0 self-center">
+                                    <ArrowRight className="w-5 h-5 text-indigo-400 group-hover:translate-x-1 transition-transform duration-300" />
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+
+                    <Link
+                        href="/calculator"
+                        className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500 p-0.5 transition-all duration-300 hover:shadow-lg hover:shadow-orange-200/30"
+                    >
+                        <div className="relative bg-white rounded-2xl p-5 sm:p-6 h-full">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-orange-100/50 to-transparent rounded-bl-full" />
+                            <div className="relative z-10 flex items-start gap-4">
+                                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-200 flex-shrink-0">
+                                    <Calculator className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="text-base sm:text-lg font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                                        {t.calculator.title}
+                                    </h3>
+                                    <p className="text-sm text-gray-500 mt-1">{t.calculator.subtitle}</p>
+                                    <div className="flex flex-wrap gap-1.5 mt-3">
+                                        <span className="inline-flex items-center px-2 py-0.5 bg-orange-50 text-orange-700 rounded-full text-xs">{t.calculator.transportCost}</span>
+                                        <span className="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs">{t.calculator.accommodationCost}</span>
+                                    </div>
+                                </div>
+                                <div className="flex-shrink-0 self-center">
+                                    <ArrowRight className="w-5 h-5 text-orange-400 group-hover:translate-x-1 transition-transform duration-300" />
+                                </div>
+                            </div>
+                        </div>
+                    </Link>
+                </div>
+
+                {/* Trip Plans Section */}
                 <div>
                     <div className="flex items-center justify-between mb-4 sm:mb-6">
-                        <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
-                            {t.dashboard.myPlans}
-                        </h2>
-                        <span className="text-sm text-gray-400">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                                <MapPin className="w-4 h-4 text-emerald-600" />
+                            </div>
+                            <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+                                {t.dashboard.myPlans}
+                            </h2>
+                        </div>
+                        <span className="text-sm text-gray-400 bg-gray-50 px-3 py-1 rounded-full">
                             共 {tripPlans.length} 个计划
                         </span>
                     </div>
@@ -324,7 +411,7 @@ export default function DashboardPage() {
                             {tripPlans.map((plan) => (
                                 <div
                                     key={plan.id}
-                                    className="bg-white rounded-2xl shadow-sm border hover:shadow-md hover:border-emerald-200 transition-all duration-300 overflow-hidden group"
+                                    className="bg-white rounded-2xl shadow-sm border border-gray-100 hover:shadow-md hover:border-emerald-200 transition-all duration-300 overflow-hidden group"
                                 >
                                     {/* Card Header Gradient */}
                                     <div className="h-2 bg-gradient-to-r from-emerald-400 to-green-500" />
@@ -340,6 +427,13 @@ export default function DashboardPage() {
                                                     {plan.destination}
                                                 </p>
                                             </div>
+                                            {plan.is_public && (
+                                                <div className="flex-shrink-0 ml-2">
+                                                    <div className="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center" title={t.dashboard.published || "已发布"}>
+                                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
 
                                         <div className="space-y-2 mb-4">
@@ -398,130 +492,6 @@ export default function DashboardPage() {
                             ))}
                         </div>
                     )}
-                </div>
-
-                {/* Travel Square Section */}
-                <div className="mt-8 sm:mt-12">
-                    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-1">
-                        <div className="relative bg-white rounded-[calc(1.5rem-4px)] p-6 sm:p-8">
-                            {/* Decorative elements */}
-                            <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-gradient-to-bl from-indigo-100/50 to-transparent rounded-bl-full" />
-                            <div className="absolute bottom-0 left-0 w-36 sm:w-48 h-36 sm:h-48 bg-gradient-to-tr from-purple-100/50 to-transparent rounded-tr-full" />
-
-                            <div className="relative z-10">
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
-                                    <div className="flex items-start gap-4 sm:gap-5">
-                                        <div className="relative flex-shrink-0">
-                                            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-200">
-                                                <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                                            </div>
-                                            <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-green-400 rounded-full flex items-center justify-center animate-pulse">
-                                                <span className="text-white text-[10px] sm:text-xs font-bold">✓</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
-                                                {t.square.title}
-                                            </h2>
-                                            <p className="text-sm sm:text-base text-gray-500 mt-1 max-w-md">
-                                                {t.square.subtitle}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <Link
-                                        href="/square"
-                                        className="group relative inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-indigo-200 transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto justify-center touch-target"
-                                    >
-                                        <Globe className="w-4 h-4 sm:w-5 sm:h-5 group-hover:rotate-12 transition-transform duration-300" />
-                                        <span className="text-sm sm:text-base">{t.square.title}</span>
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                                    </Link>
-                                </div>
-
-                                {/* Feature badges */}
-                                <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-6">
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-indigo-50 text-indigo-700 rounded-full text-xs sm:text-sm">
-                                        <span className="w-1.5 h-1.5 bg-indigo-500 rounded-full" />
-                                        {t.square.popular}
-                                    </div>
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-purple-50 text-purple-700 rounded-full text-xs sm:text-sm">
-                                        <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
-                                        {t.square.latest}
-                                    </div>
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-pink-50 text-pink-700 rounded-full text-xs sm:text-sm">
-                                        <span className="w-1.5 h-1.5 bg-pink-500 rounded-full" />
-                                        {t.square.likes}
-                                    </div>
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-orange-50 text-orange-700 rounded-full text-xs sm:text-sm">
-                                        <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
-                                        {t.square.favorites}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Travel Calculator Section */}
-                <div className="mt-6 sm:mt-8 mb-8">
-                    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500 p-1">
-                        <div className="relative bg-white rounded-[calc(1.5rem-4px)] p-6 sm:p-8">
-                            {/* Decorative elements */}
-                            <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-gradient-to-bl from-orange-100/50 to-transparent rounded-bl-full" />
-                            <div className="absolute bottom-0 left-0 w-36 sm:w-48 h-36 sm:h-48 bg-gradient-to-tr from-amber-100/50 to-transparent rounded-tr-full" />
-
-                            <div className="relative z-10">
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
-                                    <div className="flex items-start gap-4 sm:gap-5">
-                                        <div className="relative flex-shrink-0">
-                                            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-200">
-                                                <Calculator className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                                            </div>
-                                            <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-green-400 rounded-full flex items-center justify-center animate-pulse">
-                                                <span className="text-white text-[10px] sm:text-xs font-bold">✓</span>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
-                                                {t.calculator.title}
-                                            </h2>
-                                            <p className="text-sm sm:text-base text-gray-500 mt-1 max-w-md">
-                                                {t.calculator.subtitle}
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <Link
-                                        href="/calculator"
-                                        className="group relative inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-orange-200 transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto justify-center touch-target"
-                                    >
-                                        <Calculator className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
-                                        <span className="text-sm sm:text-base">{t.calculator.title}</span>
-                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
-                                    </Link>
-                                </div>
-
-                                {/* Feature badges */}
-                                <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-6">
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-orange-50 text-orange-700 rounded-full text-xs sm:text-sm">
-                                        <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
-                                        {t.calculator.transportCost}
-                                    </div>
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-amber-50 text-amber-700 rounded-full text-xs sm:text-sm">
-                                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
-                                        {t.calculator.accommodationCost}
-                                    </div>
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-yellow-50 text-yellow-700 rounded-full text-xs sm:text-sm">
-                                        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" />
-                                        {t.calculator.foodCost}
-                                    </div>
-                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-green-50 text-green-700 rounded-full text-xs sm:text-sm">
-                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-                                        {t.calculator.attractionCost}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </main>
         </div>
