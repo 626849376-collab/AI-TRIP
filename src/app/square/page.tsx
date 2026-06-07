@@ -61,18 +61,20 @@ export default function SquarePage() {
     }, [router, setUser, setProfile]);
 
     const loadTrips = async () => {
-        try {
-            const result = await getPublicTrips();
-            setTrips(result.data || []);
-        } catch (error) {
-            toast.error("加载行程列表失败");
-        }
+        const result = await getPublicTrips();
+        setTrips(result.data || []);
     };
 
     const handleRefresh = async () => {
         setIsRefreshing(true);
-        try { await loadTrips(); toast.success("已刷新"); } catch (error) { toast.error("刷新失败"); }
-        finally { setIsRefreshing(false); }
+        try {
+            await loadTrips();
+            toast.success("已刷新");
+        } catch (error) {
+            toast.error("刷新失败");
+        } finally {
+            setIsRefreshing(false);
+        }
     };
 
     const handleLike = async (tripId: string) => {
