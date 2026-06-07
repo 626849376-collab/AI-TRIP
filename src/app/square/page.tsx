@@ -10,7 +10,6 @@ import { translations } from "@/lib/translations";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import SkeletonLoader from "@/components/SkeletonLoader";
-import AISettings from "@/components/AISettings";
 import { generateTripPlan } from "@/services/ai-service";
 import {
     MapPin, ArrowLeft, Loader2, Heart, Bookmark, Clock, Flame, Star,
@@ -37,7 +36,6 @@ export default function SquarePage() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [showSignOutConfirm, setShowSignOutConfirm] = useState(false);
     const [showCreateModal, setShowCreateModal] = useState(false);
-    const [showAISettings, setShowAISettings] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
     const [formData, setFormData] = useState({
         departureCity: "", destination: "", startDate: "", endDate: "", budget: "",
@@ -196,8 +194,6 @@ export default function SquarePage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50">
-            <AISettings isOpen={showAISettings} onClose={() => setShowAISettings(false)} />
-
             {showCreateModal && (
                 <div className="fixed inset-0 z-50 flex items-start justify-center pt-4 sm:pt-10 px-4">
                     <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowCreateModal(false)} />
@@ -305,14 +301,9 @@ export default function SquarePage() {
                             <button onClick={() => setShowCreateModal(true)} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-lg font-medium hover:shadow-lg hover:shadow-emerald-200/50 transition-all shadow-sm">
                                 <Plus className="w-4 h-4" /><span className="text-sm">{t.dashboard.createNew}</span>
                             </button>
-                            <div className="flex items-center gap-1 bg-emerald-50/50 rounded-xl p-1">
-                                <button onClick={handleRefresh} disabled={isRefreshing} className="flex items-center gap-1.5 px-3 py-1.5 text-emerald-600 hover:text-emerald-700 rounded-lg hover:bg-white transition-colors" title="刷新">
-                                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} /><span className="text-sm">刷新</span>
-                                </button>
-                                <button onClick={() => setShowAISettings(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-purple-600 hover:text-purple-700 rounded-lg hover:bg-white transition-colors" title="AI 设置">
-                                    <Settings2 className="w-4 h-4" /><span className="text-sm">AI</span>
-                                </button>
-                            </div>
+                            <button onClick={handleRefresh} disabled={isRefreshing} className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors" title="刷新">
+                                <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} /><span className="text-sm">刷新</span>
+                            </button>
                             <LanguageSwitcher />
                             <Link href="/profile" className="flex items-center gap-2 px-3 py-2 text-emerald-600 hover:text-emerald-700 rounded-xl hover:bg-emerald-50 transition-colors">
                                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-emerald-400 to-green-500 flex items-center justify-center">
@@ -331,9 +322,6 @@ export default function SquarePage() {
                             <button onClick={handleRefresh} disabled={isRefreshing} className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 transition-colors" title="刷新">
                                 <RefreshCw className={`w-4 h-4 text-emerald-600 ${isRefreshing ? "animate-spin" : ""}`} />
                             </button>
-                            <button onClick={() => setShowAISettings(true)} className="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center hover:bg-purple-100 transition-colors" title="AI 设置">
-                                <Settings2 className="w-4 h-4 text-purple-600" />
-                            </button>
                             <LanguageSwitcher />
                             <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center hover:bg-emerald-100 transition-colors">
                                 {isMenuOpen ? <X className="w-5 h-5 text-emerald-600" /> : <Menu className="w-5 h-5 text-emerald-600" />}
@@ -349,9 +337,6 @@ export default function SquarePage() {
                                     </div>
                                     <span className="font-medium">{profile?.name || t.dashboard.user}</span>
                                 </Link>
-                                <button onClick={() => { setIsMenuOpen(false); setShowAISettings(true); }} className="flex items-center gap-2 text-purple-600 py-3 px-2 rounded-xl hover:bg-purple-50 transition-colors">
-                                    <Settings2 className="w-5 h-5" /><span>AI 设置</span>
-                                </button>
                                 <button onClick={() => { setIsMenuOpen(false); setShowSignOutConfirm(true); }} className="flex items-center gap-2 text-red-500 py-3 px-2 rounded-xl hover:bg-red-50 transition-colors">
                                     <LogOut className="w-5 h-5" /><span>{t.dashboard.signOut}</span>
                                 </button>
