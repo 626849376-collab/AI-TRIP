@@ -1,234 +1,283 @@
 import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 
-// Register Chinese Font — client side uses absolute URL, SSR uses local path
-if (typeof window !== 'undefined') {
-    Font.register({
-        family: 'NotoSC',
-        src: `${window.location.origin}/fonts/NotoSansSC-Regular.woff`,
-    });
-} else {
-    Font.register({
-        family: 'NotoSC',
-        src: 'd:/xiangmuwenjian1/public/fonts/NotoSansSC-Regular.woff',
-    });
-}
+// Build font src based on environment
+const getFontSrc = () => {
+    if (typeof window !== 'undefined') {
+        return `${window.location.origin}/fonts/NotoSansSC-Regular.woff`;
+    }
+    return 'd:/xiangmuwenjian1/public/fonts/NotoSansSC-Regular.woff';
+};
 
-// Suppress the hyphenation warning — react-pdf tries to hyphenate CJK text
+// Register font with BOTH normal and bold weights using the same file.
+// react-pdf crashes with hasOwnProperty when fontWeight:'bold' is used
+// but no bold variant is registered.
+Font.register({
+    family: 'NotoSC',
+    fonts: [
+        { src: getFontSrc(), fontWeight: 'normal' },
+        { src: getFontSrc(), fontWeight: 'bold' },
+    ],
+});
+
+// Disable hyphenation for CJK text
 Font.registerHyphenationCallback((word) => [word]);
 
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
+const C = {
+    green: '#059669',
+    greenLight: '#ecfdf5',
+    greenDark: '#047857',
+    gray50: '#f9fafb',
+    gray100: '#f3f4f6',
+    gray200: '#e5e7eb',
+    gray400: '#9ca3af',
+    gray500: '#6b7280',
+    gray600: '#4b5563',
+    gray700: '#374151',
+    gray900: '#111827',
+    white: '#ffffff',
+};
+
 const styles = StyleSheet.create({
+    // ── Page ─────────────────────────────────────────
     page: {
         fontFamily: 'NotoSC',
-        padding: 40,
-        fontSize: 11,
-        color: '#1f2937',
+        paddingTop: 40,
+        paddingBottom: 50,
+        paddingLeft: 40,
+        paddingRight: 40,
+        fontSize: 10,
+        color: C.gray900,
         lineHeight: 1.6,
+        backgroundColor: C.white,
     },
-    // ── Cover ────────────────────────────────────────
-    coverContainer: {
+
+    // ── Cover ─────────────────────────────────────────
+    coverWrapper: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
     },
-    coverAccent: {
-        width: 80,
-        height: 6,
-        backgroundColor: '#059669',
-        borderRadius: 3,
-        marginBottom: 24,
+    coverBar: {
+        width: 72,
+        height: 5,
+        backgroundColor: C.green,
+        marginBottom: 20,
     },
     coverTitle: {
-        fontSize: 26,
+        fontSize: 24,
         fontWeight: 'bold',
+        color: C.green,
         textAlign: 'center',
-        color: '#059669',
-        marginBottom: 12,
+        marginBottom: 8,
     },
-    coverSubtitle: {
-        fontSize: 14,
-        color: '#4b5563',
-        marginBottom: 32,
+    coverSub: {
+        fontSize: 13,
+        color: C.gray500,
+        marginBottom: 28,
     },
-    coverGrid: {
-        width: '100%',
-        maxWidth: 360,
-        border: '1pt solid #e5e7eb',
+    coverCard: {
+        width: 300,
+        backgroundColor: C.gray50,
+        borderWidth: 1,
+        borderColor: C.gray200,
+        borderStyle: 'solid',
         borderRadius: 6,
-        padding: 16,
-        backgroundColor: '#f9fafb',
+        padding: 14,
     },
-    coverItem: {
+    coverRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        marginBottom: 10,
+        marginBottom: 8,
     },
-    coverItemLabel: {
-        color: '#6b7280',
-        fontSize: 11,
+    coverLabel: {
+        fontSize: 10,
+        color: C.gray500,
     },
-    coverItemValue: {
+    coverValue: {
+        fontSize: 10,
         fontWeight: 'bold',
-        color: '#111827',
-        fontSize: 11,
+        color: C.gray900,
     },
     coverFooter: {
         position: 'absolute',
-        bottom: 40,
-        fontSize: 9,
-        color: '#9ca3af',
+        bottom: 30,
+        left: 0,
+        right: 0,
         textAlign: 'center',
+        fontSize: 8,
+        color: C.gray400,
     },
-    // ── Section title ────────────────────────────────
+
+    // ── Section heading ───────────────────────────────
     sectionTitle: {
-        fontSize: 15,
+        fontSize: 14,
         fontWeight: 'bold',
-        color: '#059669',
-        borderBottom: '1.5pt solid #059669',
+        color: C.green,
+        marginBottom: 10,
+        marginTop: 16,
         paddingBottom: 4,
-        marginTop: 20,
-        marginBottom: 12,
+        borderBottomWidth: 1.5,
+        borderBottomColor: C.green,
+        borderBottomStyle: 'solid',
     },
-    // ── Day card ─────────────────────────────────────
+
+    // ── Day header ────────────────────────────────────
     dayHeader: {
-        backgroundColor: '#ecfdf5',
-        padding: 8,
-        borderRadius: 4,
-        marginBottom: 8,
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        borderLeft: '4pt solid #059669',
+        backgroundColor: C.greenLight,
+        borderLeftWidth: 3,
+        borderLeftColor: C.green,
+        borderLeftStyle: 'solid',
+        paddingVertical: 6,
+        paddingHorizontal: 8,
+        marginBottom: 6,
     },
     dayTitle: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        color: '#047857',
-    },
-    dayDate: {
-        fontSize: 10,
-        color: '#047857',
-    },
-    // ── Activity item ─────────────────────────────────
-    activityItem: {
-        flexDirection: 'row',
-        marginBottom: 8,
-        paddingLeft: 8,
-        borderLeft: '1pt solid #d1fae5',
-    },
-    activityTime: {
-        width: 52,
-        fontSize: 10,
-        fontWeight: 'bold',
-        color: '#059669',
-    },
-    activityContent: {
-        flex: 1,
-    },
-    activityName: {
         fontSize: 11,
         fontWeight: 'bold',
-        color: '#111827',
+        color: C.greenDark,
     },
-    activityDesc: {
-        fontSize: 10,
-        color: '#4b5563',
-        marginTop: 2,
-    },
-    activityMeta: {
-        flexDirection: 'row',
-        marginTop: 3,
-        flexWrap: 'wrap',
-    },
-    activityMetaItem: {
+    dayDate: {
         fontSize: 9,
-        color: '#9ca3af',
-        marginRight: 10,
-        marginTop: 2,
+        color: C.greenDark,
     },
-    // ── Sub-blocks (meals / hotel) ────────────────────
-    dayBlock: {
-        backgroundColor: '#f9fafb',
-        borderRadius: 4,
-        padding: 8,
-        marginTop: 6,
-        marginBottom: 8,
-        border: '1pt solid #f3f4f6',
+
+    // ── Activity ──────────────────────────────────────
+    actRow: {
+        flexDirection: 'row',
+        marginBottom: 7,
+        paddingLeft: 6,
+        borderLeftWidth: 1,
+        borderLeftColor: C.gray200,
+        borderLeftStyle: 'solid',
     },
-    blockLabel: {
+    actTime: {
+        width: 50,
+        fontSize: 9,
+        fontWeight: 'bold',
+        color: C.green,
+    },
+    actBody: {
+        flex: 1,
+    },
+    actName: {
         fontSize: 10,
         fontWeight: 'bold',
-        color: '#374151',
-        marginBottom: 4,
+        color: C.gray900,
+    },
+    actDesc: {
+        fontSize: 9,
+        color: C.gray600,
+        marginTop: 1,
+    },
+    actMeta: {
+        flexDirection: 'row',
+        marginTop: 2,
+        flexWrap: 'wrap',
+    },
+    actMetaText: {
+        fontSize: 8,
+        color: C.gray400,
+        marginRight: 8,
+    },
+
+    // ── Sub block (meals / hotel) ─────────────────────
+    subBlock: {
+        backgroundColor: C.gray50,
+        borderWidth: 1,
+        borderColor: C.gray100,
+        borderStyle: 'solid',
+        borderRadius: 4,
+        padding: 7,
+        marginTop: 5,
+        marginBottom: 6,
+    },
+    subBlockTitle: {
+        fontSize: 9,
+        fontWeight: 'bold',
+        color: C.gray700,
+        marginBottom: 3,
     },
     mealsRow: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
     },
-    mealItem: {
-        fontSize: 9,
-        color: '#4b5563',
+    mealText: {
         flex: 1,
+        fontSize: 9,
+        color: C.gray600,
     },
     hotelText: {
-        fontSize: 10,
-        color: '#4b5563',
+        fontSize: 9,
+        color: C.gray600,
     },
+
     // ── Budget table ──────────────────────────────────
-    table: {
-        width: '100%',
-        border: '1pt solid #e5e7eb',
-        borderRadius: 4,
-        overflow: 'hidden',
-        marginTop: 10,
-    },
-    tableHeader: {
+    tableHead: {
         flexDirection: 'row',
-        backgroundColor: '#ecfdf5',
-        fontWeight: 'bold',
-        borderBottom: '1pt solid #e5e7eb',
-        paddingVertical: 6,
+        backgroundColor: C.greenLight,
+        paddingVertical: 5,
         paddingHorizontal: 8,
+        borderWidth: 1,
+        borderColor: C.gray200,
+        borderStyle: 'solid',
     },
     tableRow: {
         flexDirection: 'row',
-        borderBottom: '1pt solid #f3f4f6',
-        paddingVertical: 6,
+        paddingVertical: 5,
         paddingHorizontal: 8,
+        borderBottomWidth: 1,
+        borderBottomColor: C.gray100,
+        borderBottomStyle: 'solid',
+        borderLeftWidth: 1,
+        borderLeftColor: C.gray200,
+        borderLeftStyle: 'solid',
+        borderRightWidth: 1,
+        borderRightColor: C.gray200,
+        borderRightStyle: 'solid',
     },
-    tableRowTotal: {
+    tableTotal: {
         flexDirection: 'row',
         backgroundColor: '#f0fdf4',
-        fontWeight: 'bold',
-        paddingVertical: 6,
+        paddingVertical: 5,
         paddingHorizontal: 8,
+        borderWidth: 1,
+        borderColor: C.gray200,
+        borderStyle: 'solid',
     },
-    tableCol1: { flex: 2, fontSize: 10 },
-    tableCol2: { flex: 1, textAlign: 'right', fontSize: 10 },
-    // ── Tips ─────────────────────────────────────────
-    tipItem: {
+    col1: { flex: 2, fontSize: 10 },
+    col1Bold: { flex: 2, fontSize: 10, fontWeight: 'bold' },
+    col2: { flex: 1, fontSize: 10, textAlign: 'right' },
+    col2Bold: { flex: 1, fontSize: 10, textAlign: 'right', fontWeight: 'bold' },
+
+    // ── Tips ──────────────────────────────────────────
+    tipRow: {
         flexDirection: 'row',
-        marginBottom: 5,
+        marginBottom: 4,
     },
-    tipBullet: {
+    tipDot: {
         width: 12,
-        fontSize: 10,
-        color: '#059669',
+        fontSize: 9,
+        color: C.green,
     },
-    tipContent: {
+    tipText: {
         flex: 1,
-        fontSize: 10,
-        color: '#4b5563',
+        fontSize: 9,
+        color: C.gray600,
     },
+
     // ── Page number ───────────────────────────────────
-    pageNumber: {
+    pageNum: {
         position: 'absolute',
         bottom: 20,
         left: 0,
         right: 0,
         textAlign: 'center',
         fontSize: 8,
-        color: '#9ca3af',
+        color: C.gray400,
     },
 });
 
@@ -243,24 +292,20 @@ interface Activity {
     cost?: number;
 }
 
-interface BudgetBreakdown {
-    transportation?: number;
-    meals?: number;
-    tickets?: number;
-    shopping?: number;
-}
-
-interface Meals {
-    breakfast?: string;
-    lunch?: string;
-    dinner?: string;
-}
-
 interface DayContent {
     date?: string;
     hotel?: string;
-    budget?: BudgetBreakdown;
-    meals?: Meals;
+    budget?: {
+        transportation?: number;
+        meals?: number;
+        tickets?: number;
+        shopping?: number;
+    };
+    meals?: {
+        breakfast?: string;
+        lunch?: string;
+        dinner?: string;
+    };
     activities?: Activity[];
     tips?: string[];
 }
@@ -281,32 +326,37 @@ interface TripPDFDocumentProps {
     tripDetails: DayDetail[];
 }
 
-// Safe number coerce
-const n = (v: unknown) => Number(v) || 0;
+const num = (v: unknown): number => {
+    const n = Number(v);
+    return isFinite(n) ? n : 0;
+};
+
+const str = (v: unknown, fallback = ''): string =>
+    v != null && String(v).trim() ? String(v).trim() : fallback;
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export function TripPDFDocument({ tripPlan, tripDetails }: TripPDFDocumentProps) {
-    const safeDetails = Array.isArray(tripDetails) ? tripDetails : [];
+    const safeDetails: DayDetail[] = Array.isArray(tripDetails) ? tripDetails : [];
 
-    // Aggregate budget totals
-    let transTotal = 0, mealsTotal = 0, ticketsTotal = 0, shoppingTotal = 0;
-    safeDetails.forEach((day) => {
-        const b = day.content?.budget;
+    // Totals
+    let trans = 0, meals = 0, tickets = 0, shopping = 0;
+    safeDetails.forEach((d) => {
+        const b = d.content?.budget;
         if (b && typeof b === 'object') {
-            transTotal    += n(b.transportation);
-            mealsTotal    += n(b.meals);
-            ticketsTotal  += n(b.tickets);
-            shoppingTotal += n(b.shopping);
+            trans    += num(b.transportation);
+            meals    += num(b.meals);
+            tickets  += num(b.tickets);
+            shopping += num(b.shopping);
         }
     });
-    const grandTotal = transTotal + mealsTotal + ticketsTotal + shoppingTotal;
+    const grand = trans + meals + tickets + shopping;
 
-    // Collect tips
-    const allTips: string[] = [];
-    safeDetails.forEach((day) => {
-        if (Array.isArray(day.content?.tips)) {
-            day.content!.tips!.forEach((t) => { if (t) allTips.push(String(t)); });
+    // Tips
+    const tips: string[] = [];
+    safeDetails.forEach((d) => {
+        if (Array.isArray(d.content?.tips)) {
+            d.content!.tips!.forEach((t) => { if (t) tips.push(str(t)); });
         }
     });
 
@@ -314,169 +364,133 @@ export function TripPDFDocument({ tripPlan, tripDetails }: TripPDFDocumentProps)
 
     return (
         <Document>
-            {/* ── Page 1: Cover ── */}
+
+            {/* ═══ Cover ═══ */}
             <Page size="A4" style={styles.page}>
-                <View style={styles.coverContainer}>
-                    <View style={styles.coverAccent} />
-                    <Text style={styles.coverTitle}>{tripPlan?.title || '旅行规划'}</Text>
-                    <Text style={styles.coverSubtitle}>AI 迷你旅行规划师 · 生成方案</Text>
+                <View style={styles.coverWrapper}>
+                    <View style={styles.coverBar} />
+                    <Text style={styles.coverTitle}>{str(tripPlan?.title, '旅行规划')}</Text>
+                    <Text style={styles.coverSub}>AI 迷你旅行规划师 · 生成方案</Text>
 
-                    <View style={styles.coverGrid}>
-                        <View style={styles.coverItem}>
-                            <Text style={styles.coverItemLabel}>目的地</Text>
-                            <Text style={styles.coverItemValue}>{tripPlan?.destination || '-'}</Text>
-                        </View>
-                        <View style={styles.coverItem}>
-                            <Text style={styles.coverItemLabel}>出发日期</Text>
-                            <Text style={styles.coverItemValue}>{tripPlan?.start_date || '-'}</Text>
-                        </View>
-                        <View style={styles.coverItem}>
-                            <Text style={styles.coverItemLabel}>返回日期</Text>
-                            <Text style={styles.coverItemValue}>{tripPlan?.end_date || '-'}</Text>
-                        </View>
-                        <View style={[styles.coverItem, { marginBottom: 0 }]}>
-                            <Text style={styles.coverItemLabel}>预算上限</Text>
-                            <Text style={styles.coverItemValue}>
-                                {tripPlan?.budget ? `Y ${tripPlan.budget}` : '-'}
-                            </Text>
-                        </View>
+                    <View style={styles.coverCard}>
+                        {[
+                            ['目的地', str(tripPlan?.destination, '-')],
+                            ['出发日期', str(tripPlan?.start_date, '-')],
+                            ['返回日期', str(tripPlan?.end_date, '-')],
+                            ['预算上限', tripPlan?.budget ? `Y${tripPlan.budget}` : '-'],
+                        ].map(([label, value]) => (
+                            <View key={label} style={styles.coverRow}>
+                                <Text style={styles.coverLabel}>{label}</Text>
+                                <Text style={styles.coverValue}>{value}</Text>
+                            </View>
+                        ))}
                     </View>
-
-                    <Text style={styles.coverFooter}>
-                        {`生成时间: ${today}   |   AI Mini Travel Planner`}
-                    </Text>
                 </View>
-                <Text
-                    style={styles.pageNumber}
-                    render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
-                    fixed
-                />
+
+                <Text style={styles.coverFooter}>{`生成时间: ${today}   |   AI Mini Travel Planner`}</Text>
+                <Text style={styles.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} fixed />
             </Page>
 
-            {/* ── Page 2: Itinerary ── */}
+            {/* ═══ Itinerary ═══ */}
             <Page size="A4" style={styles.page}>
                 <Text style={styles.sectionTitle}>详细日程安排</Text>
 
                 {safeDetails.map((day) => {
-                    const content = day.content || {};
-                    const activities = Array.isArray(content.activities) ? content.activities : [];
-                    const meals = content.meals || {};
+                    const c = day.content || {};
+                    const acts: Activity[] = Array.isArray(c.activities) ? c.activities : [];
+                    const m = c.meals || {};
 
                     return (
-                        <View key={day.day_number} style={{ marginBottom: 14 }}>
-                            {/* Day header */}
+                        <View key={day.day_number} style={{ marginBottom: 12 }}>
                             <View style={styles.dayHeader}>
-                                <Text style={styles.dayTitle}>第 {day.day_number} 天</Text>
-                                <Text style={styles.dayDate}>{content.date || ''}</Text>
+                                <Text style={styles.dayTitle}>{`第 ${day.day_number} 天`}</Text>
+                                <Text style={styles.dayDate}>{str(c.date)}</Text>
                             </View>
 
-                            {/* Activities */}
-                            {activities.map((activity, idx) => (
-                                <View key={idx} style={styles.activityItem}>
-                                    <Text style={styles.activityTime}>{activity.time || ''}</Text>
-                                    <View style={styles.activityContent}>
-                                        <Text style={styles.activityName}>{activity.name || ''}</Text>
-                                        {!!activity.description && (
-                                            <Text style={styles.activityDesc}>{activity.description}</Text>
+                            {acts.map((a, i) => (
+                                <View key={i} style={styles.actRow}>
+                                    <Text style={styles.actTime}>{str(a.time)}</Text>
+                                    <View style={styles.actBody}>
+                                        <Text style={styles.actName}>{str(a.name)}</Text>
+                                        {!!a.description && (
+                                            <Text style={styles.actDesc}>{str(a.description)}</Text>
                                         )}
-                                        <View style={styles.activityMeta}>
-                                            {!!activity.location && (
-                                                <Text style={styles.activityMetaItem}>
-                                                    {`[地点] ${activity.location}`}
-                                                </Text>
+                                        <View style={styles.actMeta}>
+                                            {!!a.location && (
+                                                <Text style={styles.actMetaText}>{`[地点] ${a.location}`}</Text>
                                             )}
-                                            {!!activity.duration && (
-                                                <Text style={styles.activityMetaItem}>
-                                                    {`[时长] ${activity.duration}`}
-                                                </Text>
+                                            {!!a.duration && (
+                                                <Text style={styles.actMetaText}>{`[时长] ${a.duration}`}</Text>
                                             )}
-                                            {n(activity.cost) > 0 && (
-                                                <Text style={styles.activityMetaItem}>
-                                                    {`[费用] Y${activity.cost}`}
-                                                </Text>
+                                            {num(a.cost) > 0 && (
+                                                <Text style={styles.actMetaText}>{`[费用] Y${a.cost}`}</Text>
                                             )}
                                         </View>
                                     </View>
                                 </View>
                             ))}
 
-                            {/* Meals */}
-                            <View style={styles.dayBlock}>
-                                <Text style={styles.blockLabel}>餐食安排</Text>
+                            <View style={styles.subBlock}>
+                                <Text style={styles.subBlockTitle}>餐食安排</Text>
                                 <View style={styles.mealsRow}>
-                                    <Text style={styles.mealItem}>{`早: ${meals.breakfast || '自理'}`}</Text>
-                                    <Text style={styles.mealItem}>{`午: ${meals.lunch || '自理'}`}</Text>
-                                    <Text style={styles.mealItem}>{`晚: ${meals.dinner || '自理'}`}</Text>
+                                    <Text style={styles.mealText}>{`早: ${str(m.breakfast, '自理')}`}</Text>
+                                    <Text style={styles.mealText}>{`午: ${str(m.lunch, '自理')}`}</Text>
+                                    <Text style={styles.mealText}>{`晚: ${str(m.dinner, '自理')}`}</Text>
                                 </View>
                             </View>
 
-                            {/* Hotel */}
-                            {!!content.hotel && (
-                                <View style={styles.dayBlock}>
-                                    <Text style={styles.blockLabel}>住宿推荐</Text>
-                                    <Text style={styles.hotelText}>{content.hotel}</Text>
+                            {!!c.hotel && (
+                                <View style={styles.subBlock}>
+                                    <Text style={styles.subBlockTitle}>住宿推荐</Text>
+                                    <Text style={styles.hotelText}>{str(c.hotel)}</Text>
                                 </View>
                             )}
                         </View>
                     );
                 })}
 
-                <Text
-                    style={styles.pageNumber}
-                    render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
-                    fixed
-                />
+                <Text style={styles.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} fixed />
             </Page>
 
-            {/* ── Page 3: Budget & Tips ── */}
+            {/* ═══ Budget & Tips ═══ */}
             <Page size="A4" style={styles.page}>
                 <Text style={styles.sectionTitle}>预算明细分析</Text>
 
-                <View style={styles.table}>
-                    <View style={styles.tableHeader}>
-                        <Text style={styles.tableCol1}>消费类别</Text>
-                        <Text style={styles.tableCol2}>预估费用</Text>
+                <View style={styles.tableHead}>
+                    <Text style={styles.col1Bold}>消费类别</Text>
+                    <Text style={styles.col2Bold}>预估费用</Text>
+                </View>
+                {[
+                    ['交通出行', trans],
+                    ['餐饮美食', meals],
+                    ['景区门票', tickets],
+                    ['休闲购物', shopping],
+                ].map(([label, val]) => (
+                    <View key={String(label)} style={styles.tableRow}>
+                        <Text style={styles.col1}>{String(label)}</Text>
+                        <Text style={styles.col2}>{`Y${val}`}</Text>
                     </View>
-                    <View style={styles.tableRow}>
-                        <Text style={styles.tableCol1}>交通出行</Text>
-                        <Text style={styles.tableCol2}>{`Y ${transTotal}`}</Text>
-                    </View>
-                    <View style={styles.tableRow}>
-                        <Text style={styles.tableCol1}>餐饮美食</Text>
-                        <Text style={styles.tableCol2}>{`Y ${mealsTotal}`}</Text>
-                    </View>
-                    <View style={styles.tableRow}>
-                        <Text style={styles.tableCol1}>景区门票</Text>
-                        <Text style={styles.tableCol2}>{`Y ${ticketsTotal}`}</Text>
-                    </View>
-                    <View style={styles.tableRow}>
-                        <Text style={styles.tableCol1}>休闲购物</Text>
-                        <Text style={styles.tableCol2}>{`Y ${shoppingTotal}`}</Text>
-                    </View>
-                    <View style={styles.tableRowTotal}>
-                        <Text style={styles.tableCol1}>总计预估消费</Text>
-                        <Text style={styles.tableCol2}>{`Y ${grandTotal}`}</Text>
-                    </View>
+                ))}
+                <View style={styles.tableTotal}>
+                    <Text style={styles.col1Bold}>总计预估消费</Text>
+                    <Text style={styles.col2Bold}>{`Y${grand}`}</Text>
                 </View>
 
-                {allTips.length > 0 && (
-                    <View style={{ marginTop: 22 }}>
+                {tips.length > 0 && (
+                    <View style={{ marginTop: 20 }}>
                         <Text style={styles.sectionTitle}>AI 旅行小贴士</Text>
-                        {allTips.slice(0, 12).map((tip, idx) => (
-                            <View key={idx} style={styles.tipItem}>
-                                <Text style={styles.tipBullet}>{'* '}</Text>
-                                <Text style={styles.tipContent}>{tip}</Text>
+                        {tips.slice(0, 12).map((tip, i) => (
+                            <View key={i} style={styles.tipRow}>
+                                <Text style={styles.tipDot}>- </Text>
+                                <Text style={styles.tipText}>{tip}</Text>
                             </View>
                         ))}
                     </View>
                 )}
 
-                <Text
-                    style={styles.pageNumber}
-                    render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`}
-                    fixed
-                />
+                <Text style={styles.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} fixed />
             </Page>
+
         </Document>
     );
 }
