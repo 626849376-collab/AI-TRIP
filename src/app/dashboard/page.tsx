@@ -30,6 +30,7 @@ import {
     CheckCircle2,
     Sparkles,
     RefreshCw,
+    Calculator,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { formatDate, formatCurrency } from "@/lib/utils";
@@ -378,7 +379,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Travel Square Section */}
-                <div className="mt-8 sm:mt-12 mb-8">
+                <div className="mt-8 sm:mt-12">
                     <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-1">
                         <div className="relative bg-white rounded-[calc(1.5rem-4px)] p-6 sm:p-8">
                             {/* Decorative elements */}
@@ -432,6 +433,68 @@ export default function DashboardPage() {
                                     <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-orange-50 text-orange-700 rounded-full text-xs sm:text-sm">
                                         <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
                                         {t.square.favorites}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Travel Calculator Section */}
+                <div className="mt-6 sm:mt-8 mb-8">
+                    <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-orange-500 via-amber-500 to-yellow-500 p-1">
+                        <div className="relative bg-white rounded-[calc(1.5rem-4px)] p-6 sm:p-8">
+                            {/* Decorative elements */}
+                            <div className="absolute top-0 right-0 w-48 sm:w-64 h-48 sm:h-64 bg-gradient-to-bl from-orange-100/50 to-transparent rounded-bl-full" />
+                            <div className="absolute bottom-0 left-0 w-36 sm:w-48 h-36 sm:h-48 bg-gradient-to-tr from-amber-100/50 to-transparent rounded-tr-full" />
+
+                            <div className="relative z-10">
+                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 sm:gap-6">
+                                    <div className="flex items-start gap-4 sm:gap-5">
+                                        <div className="relative flex-shrink-0">
+                                            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-orange-500 to-amber-600 flex items-center justify-center shadow-lg shadow-orange-200">
+                                                <Calculator className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
+                                            </div>
+                                            <div className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-green-400 rounded-full flex items-center justify-center animate-pulse">
+                                                <span className="text-white text-[10px] sm:text-xs font-bold">✓</span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-orange-600 to-amber-600 bg-clip-text text-transparent">
+                                                {t.calculator.title}
+                                            </h2>
+                                            <p className="text-sm sm:text-base text-gray-500 mt-1 max-w-md">
+                                                {t.calculator.subtitle}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <Link
+                                        href="/calculator"
+                                        className="group relative inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 bg-gradient-to-r from-orange-500 to-amber-600 text-white rounded-xl font-medium hover:shadow-lg hover:shadow-orange-200 transition-all duration-300 hover:-translate-y-0.5 w-full sm:w-auto justify-center touch-target"
+                                    >
+                                        <Calculator className="w-4 h-4 sm:w-5 sm:h-5 group-hover:scale-110 transition-transform duration-300" />
+                                        <span className="text-sm sm:text-base">{t.calculator.title}</span>
+                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" />
+                                    </Link>
+                                </div>
+
+                                {/* Feature badges */}
+                                <div className="flex flex-wrap gap-2 sm:gap-3 mt-4 sm:mt-6">
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-orange-50 text-orange-700 rounded-full text-xs sm:text-sm">
+                                        <span className="w-1.5 h-1.5 bg-orange-500 rounded-full" />
+                                        {t.calculator.transportCost}
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-amber-50 text-amber-700 rounded-full text-xs sm:text-sm">
+                                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full" />
+                                        {t.calculator.accommodationCost}
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-yellow-50 text-yellow-700 rounded-full text-xs sm:text-sm">
+                                        <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full" />
+                                        {t.calculator.foodCost}
+                                    </div>
+                                    <div className="inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 bg-green-50 text-green-700 rounded-full text-xs sm:text-sm">
+                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
+                                        {t.calculator.attractionCost}
                                     </div>
                                 </div>
                             </div>
