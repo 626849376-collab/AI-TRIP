@@ -32,6 +32,7 @@ AI Mini Travel Planner is an AI-based intelligent travel planning tool designed 
 - ✅ 旅行计划保存、编辑、删除 / Save, Edit, Delete Travel Plans
 - ✅ 导出旅行计划为 PDF / Export Travel Plans as PDF
 - ✅ 响应式设计，支持移动端 / Responsive Design (Mobile Support)
+- ✅ **旅游计算器** / **Travel Calculator** - 输入旅行路线，自动预估交通、住宿、餐饮等各项费用
 
 ### 核心功能模块 / Core Feature Modules
 

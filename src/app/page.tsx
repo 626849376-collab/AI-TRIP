@@ -24,6 +24,7 @@ import {
     Camera,
     XCircle,
     Languages,
+    Calculator,
 } from "lucide-react";
 
 export default function HomePage() {
@@ -185,6 +186,13 @@ export default function HomePage() {
                             >
                                 {t.nav.about}
                             </a>
+                            <Link
+                                href="/calculator"
+                                className="flex items-center gap-1.5 text-orange-600 hover:text-orange-700 transition-colors font-medium"
+                            >
+                                <Calculator className="w-4 h-4" />
+                                {t.calculator?.title || "旅游计算器"}
+                            </Link>
 
                             {/* Language Toggle */}
                             <button
@@ -260,6 +268,14 @@ export default function HomePage() {
                                 >
                                     {t.nav.about}
                                 </a>
+                                <Link
+                                    href="/calculator"
+                                    className="flex items-center gap-2 text-orange-600 hover:bg-orange-50 rounded-xl px-4 py-3 transition-colors touch-target"
+                                    onClick={() => setIsMenuOpen(false)}
+                                >
+                                    <Calculator className="w-5 h-5" />
+                                    <span>{t.calculator?.title || "旅游计算器"}</span>
+                                </Link>
                                 {user ? (
                                     <Link
                                         href="/dashboard"
