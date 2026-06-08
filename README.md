@@ -123,7 +123,7 @@ npm run dev
 6. **打开浏览器访问 / Open your browser and visit**
 
 ```
-http://localhost:3000
+https://ai-trip-21bd.vercel.app/dashboard
 ```
 
 ### 可用脚本 / Available Scripts
